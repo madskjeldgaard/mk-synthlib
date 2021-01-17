@@ -1,4 +1,4 @@
-{|envType=\adsr|
+{|envType, numChannels=2|
 	[DPW4Saw, BlitB3Tri, PulseDPW, SawDPW, DPW3Tri, SinOsc].do{|soundSource|
 
 		var basename = "analog";
@@ -8,9 +8,9 @@
 		~synthNames = ~synthNames.add(name);
 
 		SynthDef(name, { 
-			arg out=0, amp=0.5, freq=441, freqModAmount=0.09,
-			detuneFreq=1, detuneModFreq=5.5, detuneModAmount=0.5, detuneModShape=0,
-			pan=1, dur=1, cutoff=1500.0, resonance=0.5, type=0,
+			arg out=0, amp=0.5, freq=441, freqModAmount=0.09, modFreq=5.5,
+			detuneFreq=1, detuneModAmount=0.5, detuneModShape=0,
+			dur=1, cutoff=1500.0, resonance=0.5, type=0,
 			filterModAmount=0.5,
 			envDone=2;
 
@@ -21,10 +21,10 @@
 
 			// Detune modulator
 			var modulators = [
-				SinOsc.kr(detuneModFreq), 
-				LFTri.kr(detuneModFreq), 
-				LFSaw.kr(detuneModFreq), 
-				LFNoise2.kr(detuneModFreq), 
+				SinOsc.kr(modFreq), 
+				LFTri.kr(modFreq), 
+				LFSaw.kr(modFreq), 
+				LFNoise2.kr(modFreq), 
 			];
 
 			var detune = SelectX.kr(
@@ -70,6 +70,9 @@
 			// Panning
 			// sig = Pan2.ar(sig, pan);
 			sig = sig * env;
+			sig = SynthDef.wrap(
+				~panFunc.value(numChannelsIn: 2, numChannelsOut: numChannels),  
+				prependArgs: [sig]);
 
 			// Output stage
 			Out.ar(out, sig * amp);
