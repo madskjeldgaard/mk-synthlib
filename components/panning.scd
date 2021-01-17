@@ -1,5 +1,5 @@
 // Deduce a panning function from number of channels in and number of channels out
-// Return a function
+// Return a function to be used with SynthDef.wrap
 (
 ~panFunc = {|numChannelsIn=1, numChannelsOut=2|
 	case
