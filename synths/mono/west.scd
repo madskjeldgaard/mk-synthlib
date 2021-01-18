@@ -1,4 +1,46 @@
-{|envType, numChannels=2|
+// West coast synthesis style synth, originally by Mark Wheeler as part of the "passersby" norns script https://github.com/markwheeler/passersby
+
+/*
+(
+Pmono(\west,
+	\freq, Pwhite(100.0,2400.0),
+	\dur, 0.25,
+	\gate, 1,
+	\pitchBendRatio, Pwhite(0.0,1.0), 
+	\glide, Pwhite(0.25,0.9), 
+	\fm1Ratio, Pwhite(0.25,3.0), 
+	\fm2Ratio, Pkey(\fm1Ratio) + Pwhite(0.25,3.0), 
+	\fm1Amount, Pwhite(0.0,0.25), 
+	\fm2Amount, Pwhite(0.0,0.5),
+	\vel, 0.5, 
+	\pressure, 0.5, //Pwhite(), 
+	\timbre, Pwhite(0.0,0.75), 
+	\waveShape, Pwhite(0.0,0.5), 
+	\waveFolds, Pwhite(0.0,0.5), 
+	\envType, 0, //Pwhite(0,1), 
+	\attack, Pwhite(0.01,0.1), 
+	\peak, Pwhite(1500.0,10000.0), 
+	\decay, Pwhite(1.0,4.0), 
+	\pan, Pbrown(-0.5,0.5,0.001),
+	\amp, 0.5, 
+	\lfoShape, 0, //Pwhite(), 
+	\lfoFreq, Pwhite(0.1,5.0),
+	\lfoToFreqAmount, Pwhite(), 
+	\lfoToWaveShapeAmount, Pwhite(), 
+	\lfoToWaveFoldsAmount, Pwhite(), 
+	\lfoToFm1Amount, Pwhite(), 
+	\lfoToFm2Amount, Pwhite(),
+	\lfoToAttackAmount, Pwhite(), 
+	\lfoToPeakAmount, Pwhite(), 
+	\lfoToDecayAmount, Pwhite(), 
+	\lfoToReverbMixAmount, Pwhite(), 
+	\drift, Pwhite()
+).play
+)
+
+
+*/
+{|numChannels=2|
 	var vcaTypes;
 	var basename = "west";
 	var name = "%".format(basename).asSymbol.postln;
@@ -38,7 +80,7 @@
 		t_gate=1, gate=1, freq = 220, pitchBendRatio = 1, glide = 0, fm1Ratio = 0.66, fm2Ratio = 3.3, fm1Amount = 0.0, fm2Amount = 0.0,
 		vel = 0.7, pressure = 0, timbre = 0, waveShape = 0, waveFolds = 0, envType = 0, attack = 0.04, decay = 2,  amp = 0.5, lfoShape = 0, lfoFreq = 0.5,
 		lfoToFreqAmount = 0, lfoToWaveShapeAmount = 0, lfoToWaveFoldsAmount = 0, lfoToFm1Amount = 0, lfoToFm2Amount = 0,
-		lfoToAttackAmount = 0, lfoToPeakAmount = 0, lfoToDecayAmount = 0, lfoToReverbMixAmount = 0, drift = 0, peak=10000;
+		lfoToAttackAmount = 0, lfoToPeakAmount = 0, lfoToDecayAmount = 0, drift = 0, peak=10000;
 
 		var i_nyquist = SampleRate.ir * 0.5, sig, controlLag = 0.005, i_numHarmonics = 44,
 		modFreq, mod1, mod2, mod1Index, mod2Index, mod1Freq, mod2Freq, sinOsc, triOsc, additiveOsc, additivePhase,
@@ -52,7 +94,7 @@
 			LFDNoise0.kr(lfoFreq * 2)
 		]);
 
-		var lfoArray = Array.fill(9, 0);
+		var lfoArray = Array.fill(8, 0);
 		lfoArray[0] = (lfo * lfoToFreqAmount * 18).midiratio; // Freq ratio
 		lfoArray[1] = (lfo * lfoToWaveShapeAmount) + LFNoise1.kr(freq: i_driftRate, mul: drift); // Wave Shape
 		lfoArray[2] = ((lfo * lfoToWaveFoldsAmount) + LFNoise1.kr(freq: i_driftRate, mul: drift)) * 2; // Wave Folds
@@ -61,7 +103,6 @@
 		lfoArray[5] = ((lfo * lfoToAttackAmount) + LFNoise1.kr(freq: i_driftRate, mul: drift)) * 2.2; // Attack
 		lfoArray[6] = (((lfo * lfoToPeakAmount) + LFNoise1.kr(freq: i_driftRate, mul: drift)) * 24).midiratio; // Peak multiplier
 		lfoArray[7] = ((lfo * lfoToDecayAmount) + LFNoise1.kr(freq: i_driftRate, mul: drift)) * 2.2; // Decay
-		lfoArray[8] = (lfo * lfoToReverbMixAmount) + LFNoise1.kr(freq: i_driftRate, mul: drift); // Reverb Mix
 
 		// LFO ins
 		freq = (freq * lfoArray[0]).clip(0, i_nyquist);
@@ -146,7 +187,7 @@
 		asrSignal = RLPF.ar(in: asrSignal, freq: asrFilterFreq, rq: 0.95);
 		asrSignal = asrSignal * EnvGen.ar(envelope: Env.asr(attackTime: attack, sustainLevel: 1, releaseTime: decay, curve: -4), gate: gate);
 
-		sig = Select.ar(envType.poll, [lpgSignal, asrSignal]);
+		sig = Select.ar(envType, [lpgSignal, asrSignal]);
 
 		sig = sig * vel.linlin(0, 1, 0.2, 1) ;
 
