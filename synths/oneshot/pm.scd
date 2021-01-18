@@ -1,5 +1,5 @@
 // Four operator phase modulation synth
-// Originally by David Morgan
+// Originally by David Morgan, modified to my liking
 // https://sccode.org/1-5dl
 
 /*
@@ -10,8 +10,8 @@ Ndef(\verb).filter(1, {arg in;
 	FreeVerb2.ar(sig[0], sig[1], 1, 0.9, 0.5);
 }).set(\wet1, 0.4);
 
-Pdef(\pm4, Pbind(
-	\instrument, \pm4,
+Pdef(\pm, Pbind(
+	\instrument, \pm5,
 	\out, Pfunc({Ndef(\verb).bus}),
 	\detunehz, 1,
 	\vdepth, 0.003,
@@ -102,11 +102,23 @@ Pdef(\pm4, Pbind(
 	\m4_3, 0.0pi,
 	\m4_4, 0.3pi, //feedback
 	
-	\lpf, Pseg(Pseq([1000,100],inf), 16, \exp, inf),
+	\lpf, Pseg(Pwhite(100.0,2500.0), Prand([16,32,48,64]), \exp, inf),
 	\hpf, 80
 ));
 
 Pdef(\pm4).play;
+
+Pdef(\pm5, 
+	Pbindf(
+		Pdef(\pm4), \octave, Pkey(\octave) + 1, \dur, Pkey(\dur) / 2.0
+	)
+).play;
+
+Pdef(\pm6, 
+	Pbindf(
+		Pdef(\pm4), \octave, Pkey(\octave) - 1, \dur, Pkey(\dur) / 1.5 
+	)
+).play;
 
 )
 
@@ -149,7 +161,7 @@ Pdef(\pm4).play;
 					sustainLevel:suslevel,
 					releaseTime:rel,
 					curve:curve
-				).kr(gate:gate);
+				).kr(gate:gate, timeScale: dur);
 
 				[freq * ratio.kr(1) + Rand(detunehz.neg, detunehz), env]
 			});
