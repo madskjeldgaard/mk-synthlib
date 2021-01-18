@@ -195,7 +195,7 @@ Pmono(\west,
 		// Saturation amp
 		sig = tanh(sig * pressure.linlin(0, 1, 1.5, 3) * amp).softclip;
 
-		// Master Envelope
+		// Main Envelope
 		sig = sig * EnvGen.kr(
 			Env([0.0,1.0,1.0,0], [fadeIn, fadeOut], releaseNode: 2),  
 			gate: killgate,  

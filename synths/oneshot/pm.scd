@@ -2,6 +2,9 @@
 // Originally by David Morgan, modified to my liking
 // https://sccode.org/1-5dl
 
+// One of the many great things about the open source music technology world is to be able to stumble upon other people's great work and reuse it. I found this gem of a phase modulation synth (with a beautiful example composition to go with it) today and it is the most touching encounter I have had with an algorithm in a while.
+// You can find the SuperCollider code for it here: https://sccode.org/1-5dl
+
 /*
 (
 Ndef(\verb).play;
@@ -102,7 +105,7 @@ Pdef(\pm, Pbind(
 	\m4_3, 0.0pi,
 	\m4_4, 0.3pi, //feedback
 	
-	\lpf, Pseg(Pwhite(100.0,2500.0), Prand([16,32,48,64]), \exp, inf),
+	\lpf, Pseg(Pwhite(100.0,3500.0), Prand([16,32,48,64],inf), \exp, inf),
 	\hpf, 80
 ));
 

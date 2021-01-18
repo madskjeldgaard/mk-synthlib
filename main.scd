@@ -6,7 +6,7 @@
 
 // One shot synths (that are killed by their envelope)
 // Create variants for each envelope type
-PathName("synths/oneshot").filesDo{|file|
+PathName("synths/enveloped").filesDo{|file|
 	var path = file.fullPath;
 	"Loading %".format(file.fileName).postln;
 
@@ -23,4 +23,12 @@ PathName("synths/mono").filesDo{|file|
 
 	path.load.value(numChannels: ~numChannels)
 };
+
+PathName("synths/oneshot").filesDo{|file|
+	var path = file.fullPath;
+	"Loading %".format(file.fileName).postln;
+
+	path.load.value(numChannels: ~numChannels)
+};
+
 )
