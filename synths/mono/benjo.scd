@@ -3,18 +3,22 @@
 
 /*
 
-(
-Pmono(\benjo, 
-	\rungler1, Pbrown(0.0,1.0,0.001), 
-	\rungler2, Pbrown(0.0,1.0,0.001), 
-	\pan, Pwhite(-1.0,1.0), 
-	\dur, Pwhite(1,4),
-	\freq, Pseg(Pwhite(40.0,1500), 8, \exp, inf),
-	\filtFreq, Pwhite(40,400),
-	\freq2, Pwhite(4,100),
-	\filterType, Pwhite(0,3),
-	\outSignal, Pwhite(0,6),
+Synth(\benjo)
 
+(
+// s.record;
+Pmono(\benjo, 
+	\rungler1, Pbrown(0.1,1.0,0.001), 
+	\rungler2, Pbrown(0.01,0.9,0.001), 
+	\pan, Pbrown(-0.5,0.5,0.01), 
+	\dur, Pwhite(0.025,0.125),
+	\loop, Pwhite(0,1),
+	//\freq, Pseg(Pwhite(80.0,500), 8, \exp, inf),
+	\freq, exprand(40.0,500.0),
+	\filtFreq, Pwhite(20,1000),
+	\freq2, Pwhite(2,40),
+	\filterType, rrand(0,3),
+	\outSignal, rrand(0,5),
 ).play
 )
 
@@ -25,7 +29,7 @@ Pmono(\benjo,
 
 	~synthNames = ~synthNames.add(name);
 
-	SynthDef.new(name, { |out=0, freq= 40, freq2=4, scale=1, rungler1=0.16, rungler2=0.0, runglerFilt=9, loop=0, filtFreq=40, q=0.82, gain=1, filterType=0, outSignal=6, amp=0.5|
+	SynthDef.new(name, { |killgate=1, fadeIn=0.01, fadeOut=0.01, out=0, freq= 40, freq2=4, scale=1, rungler1=0.16, rungler2=0.0, runglerFilt=9, loop=0, filtFreq=40, q=0.82, gain=1, filterType=0, outSignal=6, amp=0.5|
 		var osc1, osc2, tri1, tri2, sh0, sh1, sh2, sh3, sh4, sh5, sh6, sh7, sh8=1, rungler, pwm, filt, sig;
 		var sr;
 		var osc2freq, buf, bufR;
@@ -78,13 +82,20 @@ Pmono(\benjo,
 			DFM1.ar(pwm,(rungler*runglerFilt)+filtFreq,q,gain,1)
 		];
 		filt = Select.ar(filterType % filters.size, filters);
-
+		// filt = SelectX.ar(filterType * (filters.size-1), filters);
 
 		outs = [tri1, osc1, tri2, osc2, pwm, sh0, filt];
 		sig = Select.ar(outSignal % outs.size, outs);
-
+		// sig = SelectX.ar(outSignal * (outs.size-1), outs);
 
 		sig = LeakDC.ar(sig * amp);
+
+		// Main Envelope
+		sig = sig * EnvGen.kr(
+			Env([0.0,1.0,1.0,0], [fadeIn, fadeOut], releaseNode: 2),  
+			gate: killgate,  
+			doneAction: 2
+		);
 
 		// Panning
 		sig = SynthDef.wrap(
@@ -92,7 +103,7 @@ Pmono(\benjo,
 			prependArgs: [sig]
 		);
 
-		Out.ar(out, sig * amp);
+		Out.ar(out, sig);
 	}).add;
 
 };
