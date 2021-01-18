@@ -3,8 +3,8 @@
 /*
 (
 Pmono(\west,
-	\freq, Pwhite(100.0,2400.0),
-	\dur, 0.25,
+	\freq, Pwhite(100.0,400.0),
+	\dur, 0.125,
 	\gate, 1,
 	\pitchBendRatio, Pwhite(0.0,1.0), 
 	\glide, Pwhite(0.25,0.9), 
@@ -17,13 +17,13 @@ Pmono(\west,
 	\timbre, Pwhite(0.0,0.75), 
 	\waveShape, Pwhite(0.0,0.5), 
 	\waveFolds, Pwhite(0.0,0.5), 
-	\envType, 0, //Pwhite(0,1), 
+	\envType, 1, //Pwhite(0,1), 
 	\attack, Pwhite(0.01,0.1), 
 	\peak, Pwhite(1500.0,10000.0), 
-	\decay, Pwhite(1.0,4.0), 
+	\decay, Pwhite(0.5,1.0), 
 	\pan, Pbrown(-0.5,0.5,0.001),
 	\amp, 0.5, 
-	\lfoShape, 0, //Pwhite(), 
+	\lfoShape, 1, //Pwhite(), 
 	\lfoFreq, Pwhite(0.1,5.0),
 	\lfoToFreqAmount, Pwhite(), 
 	\lfoToWaveShapeAmount, Pwhite(), 
@@ -77,6 +77,7 @@ Pmono(\west,
 
 	SynthDef(name, { 
 		arg out=0, dur=1, envDone=2, 
+		killgate=1, fadeIn=0.01, fadeOut=0.01,
 		t_gate=1, gate=1, freq = 220, pitchBendRatio = 1, glide = 0, fm1Ratio = 0.66, fm2Ratio = 3.3, fm1Amount = 0.0, fm2Amount = 0.0,
 		vel = 0.7, pressure = 0, timbre = 0, waveShape = 0, waveFolds = 0, envType = 0, attack = 0.04, decay = 2,  amp = 0.5, lfoShape = 0, lfoFreq = 0.5,
 		lfoToFreqAmount = 0, lfoToWaveShapeAmount = 0, lfoToWaveFoldsAmount = 0, lfoToFm1Amount = 0, lfoToFm2Amount = 0,
@@ -194,8 +195,12 @@ Pmono(\west,
 		// Saturation amp
 		sig = tanh(sig * pressure.linlin(0, 1, 1.5, 3) * amp).softclip;
 
-		// Envelope
-		// var env = SynthDef.wrap(~envs[envType],  prependArgs: [dur, envDone]);
+		// Master Envelope
+		sig = sig * EnvGen.kr(
+			Env([0.0,1.0,1.0,0], [fadeIn, fadeOut], releaseNode: 2),  
+			gate: killgate,  
+			doneAction: 2
+		);
 
 		// Panning
 		sig = SynthDef.wrap(
