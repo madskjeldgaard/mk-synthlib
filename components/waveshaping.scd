@@ -89,7 +89,7 @@ Synth(\lol, [
 	var shapeBuffers = SynthDef.wrap({ ~shaperBuffers.asArray });
 	var shape = Select.kr((waveshape % ~shaperBuffers.size), shapeBuffers);
 	sig = Shaper.ar(shape, sig);
-	XFade2.ar(clean, sig, waveshapeAmount);
+	XFade2.ar(clean, sig, waveshapeAmount.linlin(0.0,1.0,-1.0,1.0));
 };
 
 // This one crossfades
@@ -110,6 +110,6 @@ Synth(\lol, [
 
 		sig = XFade2.ar(sigA, sigB, waveshapeCrossfade);
 
-		XFade2.ar(clean, sig, waveshapeAmount);
+		XFade2.ar(clean, sig, waveshapeAmount.linlin(0.0,1.0,-1.0,1.0));
 };
 )
