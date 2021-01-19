@@ -10,12 +10,12 @@
 Ndef(\verb).play;
 Ndef(\verb).filter(1, {arg in;
 	var sig = HPF.ar(in, 220);
-	Greyhole.ar(sig,  delayTime: 2.0,  damp: 0.0,  size: 1.0,  diff: 0.707,  feedback: 0.9,  modDepth: 0.1,  modFreq: 2.0)
+	Greyhole.ar(sig,  delayTime: 0.5,  damp: 0.1,  size: 0.1,  diff: 0.707,  feedback: 0.9,  modDepth: 0.1,  modFreq: 2.0)
 	// FreeVerb2.ar(sig[0], sig[1], 1, 0.9, 0.5);
-}).set(\wet1, 0.4);
+}).set(\wet1, 0.2);
 
 Pdef(\pm, Pbind(
-	\instrument, \pm5,
+	\instrument, \pm5_xshaped,
 	\out, Pfunc({Ndef(\verb).bus}),
 	\detunehz, 1,
 	\vdepth, 0.003,
@@ -24,6 +24,12 @@ Pdef(\pm, Pbind(
 	\legato, 0.9,
 	\dur, 0.25,
 	\tempo, 1,
+	
+	// Waveshaping
+	\waveshapeA, Pwhite(0,9),
+	\waveshapeB, Pwhite(0,9),
+	\waveshapeCrossfade, Pwhite(-1.0,1.0),
+	\waveshapeAmount, Pseg(Pseq([0.92, 0.34, -0.54, 0.04, -1.0, 0.28, 0.46]), 101, Pwhite(0.7,4.53), inf),
 
 	// melody
 	\scale, Scale.dorian,
@@ -106,7 +112,7 @@ Pdef(\pm, Pbind(
 	\m4_3, 0.0pi,
 	\m4_4, 0.3pi, //feedback
 
-	\lpf, Pseg(Pwhite(100.0,3500.0), Prand([16,32,48,64],inf), \exp, inf),
+	\lpf, Pseg(Pxrand([100,500,1500,2500],inf), Prand([16,32,8],inf), \exp, inf),
 	\hpf, 80
 ));
 
@@ -192,6 +198,13 @@ Pdef(\pm6,
 					sig;
 				});
 
+				// Shaping
+				sig = switch (shapeFuncName,
+					\normal, {sig},
+					\shaped, { SynthDef.wrap(~waveshapeWrap,  prependArgs: [sig]) },
+					\xshaped,{ SynthDef.wrap(~waveshapeXWrap,  prependArgs: [sig])  },
+					sig);
+
 				sig = LeakDC.ar(sig);
 
 				LocalOut.ar(sig);
@@ -209,13 +222,6 @@ Pdef(\pm6,
 					var key = ('op' ++ num ++ 'pan').asSymbol;
 					Pan2.ar(sig[i],	key.kr(0),	1)
 				}).sum;
-
-				// Shaping
-				sig = switch (shapeFuncName,
-					\normal, {sig},
-					\shaped, { SynthDef.wrap(~waveshapeWrap,  prependArgs: [sig]) },
-					\xshaped,{ SynthDef.wrap(~waveshapeXWrap,  prependArgs: [sig])  },
-					sig);
 
 				sig = BLowPass.ar(
 					BHiPass.ar(sig,

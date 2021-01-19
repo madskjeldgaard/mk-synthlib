@@ -17,4 +17,8 @@ PathName("synths").folders.do{|directory|
 		path.load.value(numChannels: ~numChannels)
 	};
 };
+
+// See and test all loaded SynthDefs:
+// SynthDescLib.global.browse;
+
 )

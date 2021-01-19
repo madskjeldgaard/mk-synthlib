@@ -75,29 +75,41 @@ SynthDef.new(\lol, {|out=0, amp=0.25|
 }).add;
 
 Synth(\lol, [
-	\waveshapeCrossfade, -1, 
-	\waveshapeBufferA, ~shaperBuffers.choose, 
-	\waveshapeBufferB, ~shaperBuffers.choose
+	\waveshapeCrossfade, 0.5, 
+	\waveshapeA, 0
+	\waveshapeB, 3
 ]);
 
 */
+
 // This one crossfades
 ~waveshapeWrap = {
-	arg sig, 
-		waveshapeBuffer=~shapeBuffers[\fulltonewheel];
-	Shaper.ar(waveshapeBuffer, sig);
+	arg sig, waveshapeAmount=1, waveshape=0;
+	var clean = sig;
+	var shapeBuffers = SynthDef.wrap({ ~shaperBuffers.asArray });
+	var shape = Select.kr((waveshape % ~shaperBuffers.size), shapeBuffers);
+	sig = Shaper.ar(shape, sig);
+	XFade2.ar(clean, sig, waveshapeAmount);
 };
 
 // This one crossfades
 ~waveshapeXWrap = {
 	arg sig, 
-		waveshapeBufferA = ~shapeBuffers[\altimpulsetrain], 
-		waveshapeBufferB = ~shapeBuffers[\fulltonewheel], 
+	waveshapeAmount=1,
+		waveshapeA=0,
+		waveshapeB=4,
 		waveshapeCrossfade=0;
+		var clean = sig;
 
-	var shapeA = Shaper.ar(waveshapeBufferA, sig);
-	var shapeB = Shaper.ar(waveshapeBufferB, sig);
+		var shapeBuffers = SynthDef.wrap({ ~shaperBuffers.asArray });
+		var shapeA = Select.kr((waveshapeA % ~shaperBuffers.size), shapeBuffers);
+		var shapeB = Select.kr((waveshapeB % ~shaperBuffers.size), shapeBuffers);
 
-	XFade2.ar(shapeA, shapeB, waveshapeCrossfade)
+		var sigA = Shaper.ar(shapeA, sig);
+		var sigB = Shaper.ar(shapeB, sig);
+
+		sig = XFade2.ar(sigA, sigB, waveshapeCrossfade);
+
+		XFade2.ar(clean, sig, waveshapeAmount);
 };
 )
