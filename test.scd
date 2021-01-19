@@ -958,14 +958,42 @@ Pdef(\pms, Ptpar([0.0, Pdef(\pm), 8, Pdef(\pm5), 12, Pdef(\6)])).play
 Env.at
 
 (
+[\sine, \tri].do{|zzz|
+	SynthDef.new(zzz, {|out=0|
+		var sig = if (zzz == \sine, {
+			SinOsc.ar(141);
+		}, {
+			LFTri.ar(141);
+		});
 
-SynthDef.new(\lol, {|out=0|
-	var sig = SinOsc.ar(141);
-	sig = SynthDef.wrap(~waveshapeXWrap,  prependArgs: [sig]);
+		Out.ar(out, Env.perc.kr(gate:1) * sig * 0.25)
+	}).add;
+};
 
-	Out.ar(out, Env.perc.kr(gate:1) * sig * 0.25)
-}).add;
+SynthDef.new(\pis, {|out=0|
+		var sig = 
+			SinOsc.ar(141);
+
+		Out.ar(out, Env.perc.kr(gate:1) * sig * 0.25)
+	}).add;
 )
+Synth(\pis)
 
 Synth(\lol, [\waveshapeCrossfade, -1, \waveshapeBufferA, ~shaperBuffers.choose, \waveshapeBufferB, ~shaperBuffers.choose])
 o.allControlNames
+
+(
+Pbind(
+	\instrument, \pm4_xshaped,
+	\freq, Pwhite(100.0,200.0),
+	\lpf, 1500.0,
+	\dur, 0.25,
+	\waveshapeCrossfade, Pwhite(-1.0,1.0), 
+	\waveshapeBufferA, ~shaperBuffers.choose, 
+	\waveshapeBufferB, ~shaperBuffers.choose
+).play
+
+)
+
+Synth(\pm8_xshaped, [\t_gate, 1, \waveshapeCrossfade, -1, \waveshapeBufferA, ~shaperBuffers.choose, \waveshapeBufferB, ~shaperBuffers.choose])
+
