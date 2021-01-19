@@ -13,7 +13,7 @@ s.record;
 		\root, 2,
 		\dur, dur,
 		\amp, 0.125 * Pbrown(0.5,1.0,0.0001),
-		\freqMod, Pbrown(0.0,0.9,0.001),
+		\freqModAmount, Pbrown(0.0,0.9,0.001),
 		\detuneModAmount, Pbrown(0.0,0.9,0.001),
 		\detuneFreq, Pkey(\freq) * Pbrown(0.1,1.0,0.001),
 		\detuneModShape, Pwhite(0.0,0.4),
@@ -46,7 +46,7 @@ Pdef(\a,
 			~synthNames = ~synthNames.add(name);
 
 			SynthDef(name, { 
-				arg out=0, amp=0.5, freq=441, freqModAmount=0.09, modFreq=5.5, filterModLFO=0.5,
+				arg out=0, amp=0.5, freq=441, freqModAmount=0.09, modFreq=5.5,
 				detuneFreq=1, detuneModAmount=0.5, detuneModShape=0,
 				dur=1, cutoff=1500.0, resonance=0.5, type=0,
 				filterModAmount=0.5,
@@ -98,7 +98,7 @@ Pdef(\a,
 					1.0,
 					((1.0-filterModAmount) * cutoff).clip(20.0,20000.0),
 					cutoff
-				) * detune.lag(Rand(0.0,0.25) * dur / 10).linlin(-1.0,1.0,1.0,1.0-filterModLFO);
+				) * detune.lag(Rand(0.0,0.25) * dur / 10).linlin(-1.0,1.0,1.0,1.0-filterModAmount);
 
 				sig = DFM1.ar(
 					sig,  
