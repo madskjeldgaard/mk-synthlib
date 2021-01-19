@@ -10,7 +10,8 @@
 Ndef(\verb).play;
 Ndef(\verb).filter(1, {arg in;
 	var sig = HPF.ar(in, 220);
-	FreeVerb2.ar(sig[0], sig[1], 1, 0.9, 0.5);
+	Greyhole.ar(sig,  delayTime: 2.0,  damp: 0.0,  size: 1.0,  diff: 0.707,  feedback: 0.9,  modDepth: 0.1,  modFreq: 2.0)
+	// FreeVerb2.ar(sig[0], sig[1], 1, 0.9, 0.5);
 }).set(\wet1, 0.4);
 
 Pdef(\pm, Pbind(
@@ -109,24 +110,24 @@ Pdef(\pm, Pbind(
 	\hpf, 80
 ));
 
-Pdef(\pm4).play;
+Pdef(\pm).play;
 
 Pdef(\pm5, 
 	Pbindf(
-		Pdef(\pm4), \octave, Pkey(\octave) + 1, \dur, Pkey(\dur) / 2.0
+		Pdef(\pm), \octave, Pkey(\octave) + 1, \dur, Pkey(\dur) / 2.0
 	)
 ).play;
 
 Pdef(\pm6, 
 	Pbindf(
-		Pdef(\pm4), \octave, Pkey(\octave) - 1, \dur, Pkey(\dur) / 1.5 
+		Pdef(\pm), \octave, Pkey(\octave) - 1, \dur, Pkey(\dur) / 1.5 
 	)
-).play;
+).stop;
 
 )
 
 */
-{|envType, numChannels=2|
+{|numChannels=2|
 	
 	(3..8).do{|numops|
 		var basename = "pm%".format(numops);
@@ -236,3 +237,4 @@ Pdef(\pm6,
 
 	};
 };
+
