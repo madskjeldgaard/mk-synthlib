@@ -38,7 +38,7 @@ Pdef(\a,
 {|numChannels=2|
 	~envs.keys.do{|envType|
 		[DPW4Saw, BlitB3Tri, PulseDPW, SawDPW, DPW3Tri, SinOsc].do{|soundSource|
-			[\n, \s, \xs].do{|shapeFuncName|
+			MKSynthLib.shapeWrapperKinds.do{|shapeFuncName|
 				var basename = "analog";
 				var shape = soundSource.name.asString.toLower;
 				var name = "%_%_%_%".format(basename, shape, envType, shapeFuncName).asSymbol;
@@ -95,11 +95,7 @@ Pdef(\a,
 					sig = sig * env;
 
 					// Waveshaping
-					// sig = switch (shapeFuncName,
-					// 	\n, {sig},
-					// 	\ws, { SynthDef.wrap(MKSynthLib.waveshapeWrapper(\ws),  prependArgs: [sig]) },
-					// 	\xs,{ SynthDef.wrap(MKSynthLib.waveshapeWrapper(\wxs),  prependArgs: [sig])  },
-					// 	sig);
+					sig = MKSynthLib.embedWithWaveshaper(shapeFuncName, sig);
 
 						// Filtering
 						calculatedCutoff = env.lag(Rand(0.1,1.0) * dur / 10.0).linexp(

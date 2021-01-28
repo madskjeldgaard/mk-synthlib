@@ -81,9 +81,13 @@ Ndef(\b).copy(\c).set(
 
 	*/
 
+	// Pass through
+	MKSynthLib.addWaveshapeWrapper(\n, { arg sig; sig });
+
 	// One waveshaper
 	MKSynthLib.addWaveshapeWrapper(\ws, {
 		arg sig, 
+		waveshapeGain=1,
 		waveshapeAmount=1, 
 		waveshape=0;
 		var clean = sig;
@@ -92,7 +96,7 @@ Ndef(\b).copy(\c).set(
 		// This way you don't have to supply them as arguments 
 		var shapeBuffers = SynthDef.wrap({ MKSynthLib.shapeBuffers.asArray });
 		var shape = Select.kr((waveshape % MKSynthLib.shapeBuffers.size), shapeBuffers);
-		sig = Shaper.ar(shape, sig );
+		sig = Shaper.ar(shape, waveshapeGain *sig );
 		LeakDC.ar(XFade2.ar(clean, sig, waveshapeAmount.linlin(0.0,1.0,-1.0,1.0)));
 	});
 
@@ -100,6 +104,7 @@ Ndef(\b).copy(\c).set(
 	MKSynthLib.addWaveshapeWrapper(\wxs, {
 		arg sig, 
 		waveshapeAmount=1,
+		waveshapeGain=1,
 		waveshapeA=0,
 		waveshapeB=4,
 		waveshapeCrossfade=0;
@@ -109,8 +114,8 @@ Ndef(\b).copy(\c).set(
 		var shapeA = Select.kr((waveshapeA % MKSynthLib.shapeBuffers.size), shapeBuffers);
 		var shapeB = Select.kr((waveshapeB % MKSynthLib.shapeBuffers.size), shapeBuffers);
 
-		var sigA = Shaper.ar(shapeA, sig );
-		var sigB = Shaper.ar(shapeB, sig );
+		var sigA = Shaper.ar(shapeA, waveshapeGain * sig );
+		var sigB = Shaper.ar(shapeB, waveshapeGain * sig );
 
 		sig = XFade2.ar(sigA, sigB, waveshapeCrossfade);
 

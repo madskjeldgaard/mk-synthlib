@@ -135,8 +135,7 @@ Pdef(\pm6,
 */
 {|numChannels=2|
 
-	var shapeNames = [\n, \s, \wxs];
-	shapeNames.do{|shapeFuncName|
+	MKSynthLib.shapeWrapperKinds.do{|shapeFuncName|
 		(3..8).do{|numops|
 			var basename = "pm%".format(numops);
 			var name = "%_%".format(basename,shapeFuncName).asSymbol;
@@ -200,12 +199,7 @@ Pdef(\pm6,
 
 				// Shaping
 				// Waveshaping
-				sig = switch (shapeFuncName,
-					\n, {sig},
-					\ws, { SynthDef.wrap(MKSynthLib.waveshapeWrapper(\ws),  prependArgs: [sig]) },
-					\wxs,{ SynthDef.wrap(MKSynthLib.waveshapeWrapper(\wxs),  prependArgs: [sig])  },
-					sig
-				);
+				sig = MKSynthLib.embedWithWaveshaper(shapeFuncName, sig);
 
 				sig = LeakDC.ar(sig);
 

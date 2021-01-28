@@ -30,10 +30,27 @@ MKSynthLib {
 		shapeBuffers.put(name, buffer);
 	}
 
-	// Waveshape wraper functions used with SynthDef.wrap
-	*waveshapeWrapper{|name|
-		^waveshapeWrappers[name]
+	*embedWithWaveshaper{|waveshaperName, sig|
+		^SynthDef.wrap(
+			MKSynthLib.getWaveshapeWrapper(waveshaperName),  
+			prependArgs: [sig]
+		) 
 	}
+
+	// Waveshape wraper functions used with SynthDef.wrap
+	*getWaveshapeWrapper{|name|
+		if(
+			waveshapeWrappers.keys.asArray.indexOfEqual(name).isNil,
+			{
+				this.poster("Waveshape wrapper % not found", error: true);
+				^nil
+			}, 
+			{
+				^waveshapeWrappers[name]
+			}
+		)
+	}
+
 	*addWaveshapeWrapper{|name, func|
 		this.poster("Adding waveshape wrapper function %".format(name));
 		waveshapeWrappers.put(name, func);
@@ -45,6 +62,10 @@ MKSynthLib {
 
 	*kinds{
 		^synths.keys
+	}
+
+	*shapeWrapperKinds{
+		^waveshapeWrappers.keys
 	}
 
 	*poster{|what, error=false|
