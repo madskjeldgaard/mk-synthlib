@@ -39,7 +39,7 @@ Ndef(\b).copy(\c).set(
 
 */
 (
-	"Loading waveshaper algos".postln;
+	MKSynthLib.poster("Loading waveshaper algos");
 
 	// Coeffecients
 	~waveShapeCoeffecients = IdentityDictionary.new;

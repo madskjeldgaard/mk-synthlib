@@ -1,5 +1,5 @@
 (
-~envs = (
+var envs = (
 	// Same as Env.adsr but with release node set to nil to make it triggered
 	tadsr:{ |dur=1, envDone=2, attack=0.01, decay=0.3, sustainLevel=0.5, release=1.0, peakLevel=1.0, curve = -4.0, bias = 0.0, gate=1|
 		EnvGen.kr(
@@ -45,5 +45,9 @@ triangle:{ |dur=1, envDone=2, gate=1|
 		doneAction: envDone
 	)
 }
-)
+); 
+
+envs.keysValuesDo({|envName, env|
+	MKSynthLib.addEnvelope(envName, \oneshot, env)
+})
 )

@@ -2,7 +2,10 @@ MKSynthLib {
 	classvar verbosity,
 		<synths, 
 		<shapeBuffers, 
-		<waveshapeWrappers, emojis;
+		<waveshapeWrappers, 
+		<envelopes,
+		<vcaWrappers,
+		<emojis;
 
 	*new {|numChannelsOut=2, verbose=true|
 		^super.new.init( numChannelsOut, verbose );
@@ -22,6 +25,36 @@ MKSynthLib {
 			});
 
 		})
+	}
+
+	// VCA / envelope
+	*getEnvelope{|envelopeName, kind|
+		^envelopes.at(kind).at(envelopeName)
+	}
+
+	*addEnvelope{|envName, kind, envelope|
+		if(kind.isNil, {
+			this.poster("No kind supplied for envelope %".format(envName), error: true)
+		}, {
+			// If there is not already an array under the key
+
+			this.poster("Adding % envelope %".format(kind, envName));
+			// Add one
+			if(envelopes.at(kind).isNil, {
+				envelopes.put(kind, IdentityDictionary[envName.asSymbol -> envelope])
+			}, {
+				envelopes.put(kind, envelopes.at(kind).put(envName.asSymbol, envelope))
+			});
+
+		})
+	}
+
+	// Wraps an envelope around the signal and uses it to scale the amplitude
+	*embedWithVCA{|envelopeName, kind, sig, dur, envDone, gate|
+		^SynthDef.wrap({|sig, dur, envDone, gate|
+			sig * SynthDef.wrap(this.getEnvelope(envelopeName, kind), prependArgs: [dur, envDone, gate])
+		},  prependArgs: [sig, dur, envDone, gate]
+		)
 	}
 
 	// Waveshaping
@@ -60,6 +93,7 @@ MKSynthLib {
 		^shapeBuffers.size;
 	}
 
+	// Synth plumming
 	*kinds{
 		^synths.keys
 	}
@@ -88,6 +122,8 @@ MKSynthLib {
 		verbosity = verbose;
 
 		synths = IdentityDictionary[];
+		envelopes = IdentityDictionary[];
+		vcaWrappers = IdentityDictionary[];
 		shapeBuffers = IdentityDictionary[];
 		waveshapeWrappers = IdentityDictionary[];
 		emojis = ["🤠", "🪱", "🦑", "🥀", "🌻", "🍁", "🍇",  "🦞", "🍍", "🧀" ];
