@@ -168,10 +168,10 @@ Pdef(\pm6,
 					var suslevel = ('op' ++ num ++ 'suslevel').asSymbol.kr(0.75);
 					var rel = ('op' ++ num ++ 'rel').asSymbol.kr(0.78);
 					var env = Env.adsr(
-						attackTime:atk,
-						decayTime:dec,
-						sustainLevel:suslevel,
-						releaseTime:rel,
+						attackTime:atk * \attack.kr(0.5),
+						decayTime:dec * \decay.kr(1.0),
+						sustainLevel:suslevel * \sustain.kr(0.9),
+						releaseTime:rel * \release.kr(0.5),
 						curve:curve
 					).kr(gate:gate, timeScale: dur);
 
@@ -183,7 +183,7 @@ Pdef(\pm6,
 					numops.collect({arg j;
 						var x = j + 1;
 						var key = ('m' ++ y ++ '_' ++ x).asSymbol;
-						key.kr(rrand(0.0,0.1) * pi);
+						key.kr(rrand(0.0,0.2) * pi);
 					});
 				});
 
@@ -200,9 +200,9 @@ Pdef(\pm6,
 
 				// Shaping
 				sig = switch (shapeFuncName,
-					\normal, {sig},
-					\shaped, { SynthDef.wrap(~waveshapeWrap,  prependArgs: [sig]) },
-					\xshaped,{ SynthDef.wrap(~waveshapeXWrap,  prependArgs: [sig])  },
+					\n, {sig},
+					\s, { SynthDef.wrap(~waveshapeWrap,  prependArgs: [sig]) },
+					\xs,{ SynthDef.wrap(~waveshapeXWrap,  prependArgs: [sig])  },
 					sig);
 
 				sig = LeakDC.ar(sig);
@@ -213,7 +213,7 @@ Pdef(\pm6,
 				sig = sig * numops.collect({arg i;
 					var num = i + 1;
 					var key = ('op' ++ num).asSymbol;
-					key.kr(rrand(0.9,1.0));
+					key.kr(rrand(0.5,1.0));
 				}).normalizeSum;
 
 				// set panning
