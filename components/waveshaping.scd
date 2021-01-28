@@ -39,7 +39,6 @@ Ndef(\b).copy(\c).set(
 
 */
 (
-s.waitForBoot{
 	"Loading waveshaper algos".postln;
 
 	// Coeffecients
@@ -57,15 +56,12 @@ s.waitForBoot{
 
 	// Convert coeffecients to waveshaping buffers
 	~shaperBuffers = IdentityDictionary.new;
+
 	~waveShapeCoeffecients.keysValuesDo{|name, coeffecients|
 		var waveShapeSignal = Signal.chebyFill(4096, coeffecients, normalize: true, zeroOffset:false);
 		var buf = Buffer.loadCollection(s, waveShapeSignal.asWavetableNoWrap);
-		~shaperBuffers.put(name, buf);
+		MKSynthLib.addWaveshapeBuffer(name, buf)
 	};
-
-	~numWaveShapes = ~shaperBuffers.size;
-	"% waveshaping buffers are available in ~shaperBuffers using the following keys:".format(~numWaveShapes).postln;
-	~shaperBuffers.keys.do{|k| k.postln};
 
 	// A function for embedding in a synthdef using SynthDef.wrap
 	/*
@@ -85,18 +81,23 @@ s.waitForBoot{
 
 	*/
 
-	// This one crossfades
-	~waveshapeWrap = {
-		arg sig, waveshapeAmount=1, waveshape=0;
+	// One waveshaper
+	MKSynthLib.addWaveshapeWrapper(\ws, {
+		arg sig, 
+		waveshapeAmount=1, 
+		waveshape=0;
 		var clean = sig;
-		var shapeBuffers = SynthDef.wrap({ ~shaperBuffers.asArray });
-		var shape = Select.kr((waveshape % ~shaperBuffers.size), shapeBuffers);
-		sig = Shaper.ar(shape, sig);
-		XFade2.ar(clean, sig, waveshapeAmount.linlin(0.0,1.0,-1.0,1.0));
-	};
+
+		// This wrapping trick is necessary to embed all the buffers in the synth. 
+		// This way you don't have to supply them as arguments 
+		var shapeBuffers = SynthDef.wrap({ MKSynthLib.shapeBuffers.asArray });
+		var shape = Select.kr((waveshape % MKSynthLib.shapeBuffers.size), shapeBuffers);
+		sig = Shaper.ar(shape, sig );
+		LeakDC.ar(XFade2.ar(clean, sig, waveshapeAmount.linlin(0.0,1.0,-1.0,1.0)));
+	});
 
 	// This one crossfades
-	~waveshapeXWrap = {
+	MKSynthLib.addWaveshapeWrapper(\wxs, {
 		arg sig, 
 		waveshapeAmount=1,
 		waveshapeA=0,
@@ -104,18 +105,15 @@ s.waitForBoot{
 		waveshapeCrossfade=0;
 		var clean = sig;
 
-		var shapeBuffers = SynthDef.wrap({ ~shaperBuffers.asArray });
-		var shapeA = Select.kr((waveshapeA % ~shaperBuffers.size), shapeBuffers);
-		var shapeB = Select.kr((waveshapeB % ~shaperBuffers.size), shapeBuffers);
+		var shapeBuffers = SynthDef.wrap({ MKSynthLib.shapeBuffers.asArray });
+		var shapeA = Select.kr((waveshapeA % MKSynthLib.shapeBuffers.size), shapeBuffers);
+		var shapeB = Select.kr((waveshapeB % MKSynthLib.shapeBuffers.size), shapeBuffers);
 
-		var sigA = Shaper.ar(shapeA, sig);
-		var sigB = Shaper.ar(shapeB, sig);
+		var sigA = Shaper.ar(shapeA, sig );
+		var sigB = Shaper.ar(shapeB, sig );
 
 		sig = XFade2.ar(sigA, sigB, waveshapeCrossfade);
 
-		XFade2.ar(clean, sig, waveshapeAmount.linlin(0.0,1.0,-1.0,1.0));
-	};
-
-
-}
+		LeakDC.ar(XFade2.ar(clean, sig, waveshapeAmount.linlin(0.0,1.0,-1.0,1.0)));
+	});
 )

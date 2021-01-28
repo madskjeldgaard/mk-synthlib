@@ -29,9 +29,9 @@ Pbind(
 	~envs.keys.do{|envType|
 
 		var basename = "benjo";
-		var name = "%_%".format(basename, envType).asSymbol.postln;
+		var name = "%_%".format(basename, envType).asSymbol;
 
-		~synthNames = ~synthNames.add(name);
+		MKSynthLib.addSynthName(name, kind: \mono);
 
 		SynthDef.new(name, { |out=0, envDone=2,dur=1, freq= 40, freq2=4, scale=1, rungler1=0.16, rungler2=0.0, runglerFilt=9, loop=0, filtFreq=40, q=0.82, gain=1, filterType=0, outSignal=6, amp=0.5|
 			var osc1, osc2, tri1, tri2, sh0, sh1, sh2, sh3, sh4, sh5, sh6, sh7, sh8=1, rungler, pwm, filt, sig;

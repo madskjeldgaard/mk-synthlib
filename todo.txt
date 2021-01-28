@@ -1,0 +1,3 @@
+- FM7 synths
+- advanced (with control over each operator) vs simple versions (with overall env control) of pm synth 
+- Server side granular with waveshaping

@@ -1,26 +1,33 @@
 {|numChannelsOut=2|
 
 	~numChannels = numChannelsOut;
-	~synthNames = [];
 
 	s.waitForBoot{
-		PathName("components").filesDo{|file| 
-			var path = file.fullPath;
-			"Loading %".format(file.fileName).postln;
-			path.load
-		};
+		fork{
 
-		// Synths that need to be manually killed
-		PathName("synths").folders.do{|directory|
-			directory.filesDo{|file|
+			PathName("components").filesDo{|file| 
 				var path = file.fullPath;
 				"Loading %".format(file.fileName).postln;
-
-				path.load.value(numChannels: ~numChannels)
+				path.load
 			};
+
+			s.sync;
+
+			// Synths that need to be manually killed
+			PathName("synths").folders.do{|directory|
+				directory.filesDo{|file|
+					var path = file.fullPath;
+					"Loading %".format(file.fileName).postln;
+
+					path.load.value(numChannels: ~numChannels)
+				};
+			};
+
+			s.sync;
+			// See and test all loaded SynthDefs:
+			// SynthDescLib.global.browse;
+
 		};
 
-		// See and test all loaded SynthDefs:
-		// SynthDescLib.global.browse;
-	}
+	};
 }

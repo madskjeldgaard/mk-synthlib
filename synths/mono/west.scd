@@ -43,9 +43,9 @@ Pmono(\west,
 {|numChannels=2|
 	var vcaTypes;
 	var basename = "west";
-	var name = "%".format(basename).asSymbol.postln;
+	var name = "%".format(basename).asSymbol;
 
-	~synthNames = ~synthNames.add(name);
+	MKSynthLib.addSynthName(name, kind: \mono);
 /*
 	vcaTypes = (
 		lpg: {

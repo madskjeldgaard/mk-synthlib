@@ -41,9 +41,9 @@ Pdef(\a,
 			[\n, \s, \xs].do{|shapeFuncName|
 				var basename = "analog";
 				var shape = soundSource.name.asString.toLower;
-				var name = "%_%_%_%".format(basename, shape, envType, shapeFuncName).asSymbol.postln;
+				var name = "%_%_%_%".format(basename, shape, envType, shapeFuncName).asSymbol;
 
-				~synthNames = ~synthNames.add(name);
+				MKSynthLib.addSynthName(name, kind: \oneshot);
 
 				SynthDef(name, { 
 					arg out=0, amp=0.5, freq=441, freqModAmount=0.09, modFreq=5.5,
@@ -95,11 +95,11 @@ Pdef(\a,
 					sig = sig * env;
 
 					// Waveshaping
-					sig = switch (shapeFuncName,
-						\n, {sig},
-						\s, { SynthDef.wrap(~waveshapeWrap,  prependArgs: [sig]) },
-						\xs,{ SynthDef.wrap(~waveshapeXWrap,  prependArgs: [sig])  },
-						sig);
+					// sig = switch (shapeFuncName,
+					// 	\n, {sig},
+					// 	\ws, { SynthDef.wrap(MKSynthLib.waveshapeWrapper(\ws),  prependArgs: [sig]) },
+					// 	\xs,{ SynthDef.wrap(MKSynthLib.waveshapeWrapper(\wxs),  prependArgs: [sig])  },
+					// 	sig);
 
 						// Filtering
 						calculatedCutoff = env.lag(Rand(0.1,1.0) * dur / 10.0).linexp(

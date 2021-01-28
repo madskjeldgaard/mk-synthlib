@@ -135,13 +135,13 @@ Pdef(\pm6,
 */
 {|numChannels=2|
 
-	var shapeNames = [\normal, \shaped, \xshaped];
+	var shapeNames = [\n, \s, \wxs];
 	shapeNames.do{|shapeFuncName|
 		(3..8).do{|numops|
 			var basename = "pm%".format(numops);
-			var name = "%_%".format(basename,shapeFuncName).asSymbol.postln;
+			var name = "%_%".format(basename,shapeFuncName).asSymbol;
 
-			~synthNames = ~synthNames.add(name);
+			MKSynthLib.addSynthName(name, kind: \oneshot);
 
 			SynthDef(name, { 
 				arg out=0, amp=0.5,
@@ -199,11 +199,13 @@ Pdef(\pm6,
 				});
 
 				// Shaping
+				// Waveshaping
 				sig = switch (shapeFuncName,
 					\n, {sig},
-					\s, { SynthDef.wrap(~waveshapeWrap,  prependArgs: [sig]) },
-					\xs,{ SynthDef.wrap(~waveshapeXWrap,  prependArgs: [sig])  },
-					sig);
+					\ws, { SynthDef.wrap(MKSynthLib.waveshapeWrapper(\ws),  prependArgs: [sig]) },
+					\wxs,{ SynthDef.wrap(MKSynthLib.waveshapeWrapper(\wxs),  prependArgs: [sig])  },
+					sig
+				);
 
 				sig = LeakDC.ar(sig);
 
