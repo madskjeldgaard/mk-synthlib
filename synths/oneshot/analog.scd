@@ -36,7 +36,7 @@ Pdef(\a,
 )
 */
 {|numChannels=2|
-	~envs.keys.do{|envType|
+	MKSynthLib.getEnvelopeNamesForKind.do{|envType|
 		[DPW4Saw, BlitB3Tri, PulseDPW, SawDPW, DPW3Tri, SinOsc].do{|soundSource|
 			MKSynthLib.shapeWrapperKinds.do{|shapeFuncName|
 				var basename = "analog";
@@ -55,7 +55,8 @@ Pdef(\a,
 					var sig, calculatedCutoff;
 
 					// Envelope
-					var env = SynthDef.wrap(~envs[envType],  prependArgs: [dur, envDone]);
+					// var env = SynthDef.wrap(~envs[envType],  prependArgs: [dur, envDone]);
+					var env = MKSynthLib.getEnvelopeWrapped(envType, \oneshot, dur, envDone);
 
 					// Detune modulator
 					var modulators = [

@@ -26,7 +26,7 @@ Pbind(
 
 */
 {|numChannels=2|
-	~envs.keys.do{|envType|
+	MKSynthLib.getEnvelopeNamesForKind.do{|envType|
 
 		var basename = "benjo";
 		var name = "%_%".format(basename, envType).asSymbol;
@@ -96,8 +96,7 @@ Pbind(
 			sig = LeakDC.ar(sig * amp);
 
 			// Envelope
-			// sig = sig * SynthDef.wrap(~envs[envType]);
-			sig = sig * SynthDef.wrap(~envs[envType],  prependArgs: [dur, envDone]);
+			sig = MKSynthLib.embedWithVCA(envType, \oneshot, sig, dur, envDone);
 
 			// Panning
 			sig = SynthDef.wrap(

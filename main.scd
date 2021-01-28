@@ -14,14 +14,14 @@
 			s.sync;
 
 			// Synths that need to be manually killed
-			// PathName("synths").folders.do{|directory|
-			// 	directory.filesDo{|file|
-			// 		var path = file.fullPath;
-			// 		"Loading %".format(file.fileName).postln;
+			PathName("synths").folders.do{|directory|
+				directory.filesDo{|file|
+					var path = file.fullPath;
+					"Loading %".format(file.fileName).postln;
 
-			// 		path.load.value(numChannels: ~numChannels)
-			// 	};
-			// };
+					path.load.value(numChannels: ~numChannels)
+				};
+			};
 
 			s.sync;
 			// See and test all loaded SynthDefs:

@@ -27,9 +27,17 @@ MKSynthLib {
 		})
 	}
 
+	*getEnvelopeNamesForKind{|kind=\oneshot|
+		^envelopes.at(kind).keys.asArray
+	}
+
 	// Get an envelope wrapper to use with SynthDef.wrap
 	*getEnvelopeWrapper{|envelopeName, kind|
 		^envelopes.at(kind).at(envelopeName)
+	}
+
+	*getEnvelopeWrapped{|envelopeName, kind, dur=1, envDone=2|
+		^SynthDef.wrap(this.getEnvelopeWrapper(envelopeName, kind), prependArgs: [dur, envDone])
 	}
 
 	*addEnvelope{|envName, kind, envelope|
