@@ -27,8 +27,8 @@ MKSynthLib {
 		})
 	}
 
-	// VCA / envelope
-	*getEnvelope{|envelopeName, kind|
+	// Get an envelope wrapper to use with SynthDef.wrap
+	*getEnvelopeWrapper{|envelopeName, kind|
 		^envelopes.at(kind).at(envelopeName)
 	}
 
@@ -50,10 +50,10 @@ MKSynthLib {
 	}
 
 	// Wraps an envelope around the signal and uses it to scale the amplitude
-	*embedWithVCA{|envelopeName, kind, sig, dur, envDone, gate|
-		^SynthDef.wrap({|sig, dur, envDone, gate|
-			sig * SynthDef.wrap(this.getEnvelope(envelopeName, kind), prependArgs: [dur, envDone, gate])
-		},  prependArgs: [sig, dur, envDone, gate]
+	*embedWithVCA{|envelopeName, kind, sig, dur, envDone|
+		^SynthDef.wrap({|sig, dur, envDone|
+			sig * SynthDef.wrap(this.getEnvelopeWrapper(envelopeName, kind), prependArgs: [dur, envDone])
+		},  prependArgs: [sig, dur, envDone]
 		)
 	}
 
