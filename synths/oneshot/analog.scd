@@ -38,86 +38,95 @@ Pdef(\a,
 {|numChannels=2|
 	~envs.keys.do{|envType|
 		[DPW4Saw, BlitB3Tri, PulseDPW, SawDPW, DPW3Tri, SinOsc].do{|soundSource|
+			[\n, \s, \xs].do{|shapeFuncName|
+				var basename = "analog";
+				var shape = soundSource.name.asString.toLower;
+				var name = "%_%_%_%".format(basename, shape, envType, shapeFuncName).asSymbol.postln;
 
-			var basename = "analog";
-			var shape = soundSource.name.asString.toLower;
-			var name = "%_%_%".format(basename, shape, envType).asSymbol.postln;
+				~synthNames = ~synthNames.add(name);
 
-			~synthNames = ~synthNames.add(name);
+				SynthDef(name, { 
+					arg out=0, amp=0.5, freq=441, freqModAmount=0.09, modFreq=5.5,
+					detuneFreq=1, detuneModAmount=0.5, detuneModShape=0,
+					dur=1, cutoff=1500.0, resonance=0.5, type=0,
+					filterModAmount=0.5,
+					envDone=2;
 
-			SynthDef(name, { 
-				arg out=0, amp=0.5, freq=441, freqModAmount=0.09, modFreq=5.5,
-				detuneFreq=1, detuneModAmount=0.5, detuneModShape=0,
-				dur=1, cutoff=1500.0, resonance=0.5, type=0,
-				filterModAmount=0.5,
-				envDone=2;
+					var sig, calculatedCutoff;
 
-				var sig, calculatedCutoff;
+					// Envelope
+					var env = SynthDef.wrap(~envs[envType],  prependArgs: [dur, envDone]);
 
-				// Envelope
-				var env = SynthDef.wrap(~envs[envType],  prependArgs: [dur, envDone]);
+					// Detune modulator
+					var modulators = [
+						SinOsc.ar(modFreq), 
+						LFTri.ar(modFreq), 
+						LFSaw.ar(modFreq), 
+						LFNoise2.ar(modFreq), 
+					];
 
-				// Detune modulator
-				var modulators = [
-					SinOsc.kr(modFreq), 
-					LFTri.kr(modFreq), 
-					LFSaw.kr(modFreq), 
-					LFNoise2.kr(modFreq), 
-				];
+					var detune = SelectX.ar(
+						detuneModShape * modulators.size, 
+						modulators, 
+						wrap: 1
+					);
 
-				var detune = SelectX.kr(
-					detuneModShape * modulators.size, 
-					modulators, 
-					wrap: 1
-				);
+					detune = detune.lag(Rand() * dur * 0.1);
 
-				detune = detune.lag(Rand() * dur * 0.1);
+					freq = detune.linexp(-1.0,1.0,freq,(1.0+freqModAmount) * freq); 
 
-				freq = detune.linexp(-1.0,1.0,freq,(1.0+freqModAmount) * freq); 
+					// Source sound
+					sig = soundSource.ar(
+						freq:
+						[
+							freq,
+							freq - detune.linexp(
+								-1.0,
+								1.0,
+								0.0001, 
+								(detuneFreq * detuneModAmount) + 0.0001
+							).lag(dur*0.1)
+						]
 
-				// Source sound
-				sig = soundSource.ar(
-					freq:
-					[
-						freq,
-						freq - detune.linexp(
-							-1.0,
+					);
+
+					// VCA
+					sig = sig / 2.0;
+					sig = sig * env;
+
+					// Waveshaping
+					sig = switch (shapeFuncName,
+						\n, {sig},
+						\s, { SynthDef.wrap(~waveshapeWrap,  prependArgs: [sig]) },
+						\xs,{ SynthDef.wrap(~waveshapeXWrap,  prependArgs: [sig])  },
+						sig);
+
+						// Filtering
+						calculatedCutoff = env.lag(Rand(0.1,1.0) * dur / 10.0).linexp(
+							0.0,
 							1.0,
-							0.0001, 
-							(detuneFreq * detuneModAmount) + 0.0001
-						).lag(dur*0.1)
-					]
+							((1.0-filterModAmount) * cutoff).clip(20.0,20000.0),
+							cutoff
+						) * detune.lag(Rand(0.0,0.25) * dur / 10).linlin(-1.0,1.0,1.0,1.0-filterModAmount);
 
-				);
+						sig = DFM1.ar(
+							sig,  
+							calculatedCutoff.clip(20.0,20000.0),	
+							resonance,  
+							type: type,  
+							noiselevel: 0.0003
+						);
 
-				sig = sig / 2.0;
+						// Panning
+						sig = SynthDef.wrap(
+							~panFunc.value(numChannelsIn: 2, numChannelsOut: numChannels),  
+							prependArgs: [sig]);
 
-				// Filtering
-				calculatedCutoff = env.lag(Rand(0.1,1.0) * dur / 10.0).linexp(
-					0.0,
-					1.0,
-					((1.0-filterModAmount) * cutoff).clip(20.0,20000.0),
-					cutoff
-				) * detune.lag(Rand(0.0,0.25) * dur / 10).linlin(-1.0,1.0,1.0,1.0-filterModAmount);
+							// Output stage
+							Out.ar(out, sig * amp);
+						}).add;
 
-				sig = DFM1.ar(
-					sig,  
-					calculatedCutoff.clip(20.0,20000.0),	
-					resonance,  
-					type: type,  
-					noiselevel: 0.0003
-				);
-
-				// Panning
-				sig = sig * env;
-				sig = SynthDef.wrap(
-					~panFunc.value(numChannelsIn: 2, numChannelsOut: numChannels),  
-					prependArgs: [sig]);
-
-					// Output stage
-					Out.ar(out, sig * amp);
-				}).add;
-
+					};
 			};
 
 		};
