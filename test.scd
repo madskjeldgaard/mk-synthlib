@@ -842,10 +842,14 @@ Ndef(\verb).filter(1, {arg in;
 }).set(\wet1, 0.4);
 
 Pdef(\pm, Pbind(
-	\instrument, \pm5,
+	\instrument, \pm5_xshaped,
 	\out, Pfunc({Ndef(\verb).bus}),
 	\detunehz, 1,
 	\vdepth, 0.003,
+
+	\waveshapeCrossfade, Pwhite(-1.0,1.0), 
+	\waveshapeBufferA, ~shaperBuffers.choose, 
+	\waveshapeBufferB, ~shaperBuffers.choose,
 	
 	// rhythm
 	\legato, 0.9,
@@ -997,3 +1001,232 @@ Pbind(
 
 Synth(\pm8_xshaped, [\t_gate, 1, \waveshapeCrossfade, -1, \waveshapeBufferA, ~shaperBuffers.choose, \waveshapeBufferB, ~shaperBuffers.choose])
 
+a = Synth(\pm8_xshaped, [\waveshapeA, 3, \waveshapeB, 6]);
+a.set(\waveshapeA, 2, \waveshapeB, 3)
+
+z = Synth(\pm3_xshaped, [\waveshapeCrossfade, 0.5])
+z.set(\waveshapeA, 9, \waveshapeB, 2);
+Ndef(\lort, { LFNoise2.kr(1) });
+z.map(\waveshapeCrossfade, Ndef(\lort))
+
+SynthDescLib.global.browse;
+
+
+(
+~arrr = {
+	[SinOsc.ar(134), LFTri.ar(110), LFPar.ar(191)]
+};
+
+SynthDef(\lol, { |x, i=0|
+	var array = SynthDef.wrap(~arrr);
+	var sig = Select.ar(i, array);
+
+	Out.ar(x, sig * 0.1);
+}).add;
+)
+
+
+(
+SynthDef(\lol, { |x, i=0|
+	var array = SynthDef.wrap({ ~shaperBuffers.asArray });
+	var shape = Select.kr((i % ~shaperBuffers.size.postln).poll, array);
+	var sig = SinOsc.ar(512);
+
+	sig = Shaper.ar(shape, sig);
+
+	Out.ar(x, sig * 0.1);
+}).add;
+)
+w = Synth(\lol, [\i, 0]);
+w.set(\i, 16)
+~shaperBuffers.asArray[10]
+
+
+s.record;
+
+(
+SynthDef( \pitches, {|nr, panpos|
+		Out.ar(0,
+		Pan2.ar(
+			SinOsc.ar(	(36+(60*nr)).midicps, 0, 0.01, 0),  //use midicps for a nice equal spreading of pitches
+			panpos;
+		)
+
+	)
+}).add;
+)
+
+(
+var startx=0.5;
+var windowHeight=950, windowWidth=1600; //nice values for a 1920 x 1080 screen
+var p1, p2;
+
+var pitchArray=Array.newClear(100);
+
+
+//initialise synths
+for (0, 99, { arg i;
+	pitchArray[i]=Synth(\pitches,[ \nr, 0, \panpos, -1+(2*i/100)] );
+});
+
+
+w=Window("Feigenbaum", Rect(160, 40, windowWidth, windowHeight)).front;
+u = UserView(w, w.view.bounds);
+u.background=Color.white;
+u.clearOnRefresh_(false);
+
+
+u.drawFunc={
+	Pen.fillColor = Color.black;
+	Pen.addRect(Rect(p1, p2, 1, 1));
+	Pen.fill;
+};
+
+r=Routine({
+	forBy(0, 4, 4/windowWidth, {arg l;  //l (for lambda, the fertility) runs from 0 to 4
+		//varying windowWidth will also vary the time it takes to finish the program
+		l.postln;
+		x=startx;
+		for(1, 200, {arg t;  //calculations are iterated 200 times
+			x=l*x*(1-x);
+			pitchArray[t%100].set(\nr, x); //you hear only 100 results at a time to emphasize the final result
+			p1=l*windowWidth/4;
+			p2=windowHeight-(x*windowHeight)-1;
+			{u.refresh}.defer;
+			0.0025.wait;
+
+		});
+	});
+	10.wait;
+
+	for (0, 99, { arg i;
+		pitchArray[i].free})
+
+});
+
+r.play;
+)
+
+Synth(\pm3_xshaped, [\freq, 100, \dur, 2, \gate, 1])
+
+
+
+(
+
+x = Synth(\west);
+// MIDIIn.connectAll;
+MIDIFunc.noteOn({|...args| 
+	var chan = args[0];
+	var notenum = args[1];
+	// Synth(\analog_dpw4saw_tadsr, [\t_gate, 1, \freq, notenum.midicps])
+	x.set(
+		\envType, 0,
+		\t_gate, 1, 
+		\freq, notenum.midicps,
+		\attack, 0.001, 
+		\decay, 0.91,
+		// \release, 0.51,
+		\timbre, rrand(0.0,0.9),
+		\waveShape, 0.95,
+		\fm1Amount, 0.15,
+		\fm2Amount, 0.25,
+	)
+}, chan: 0);
+MIDIFunc.noteOff({ x.set(\gate, 0) }, chan: 0);
+
+y = Synth(\west);
+// MIDIIn.connectAll;
+MIDIFunc.noteOn({|...args| 
+	var chan = args[0].postln;
+	var notenum = args[1].postln;
+	// Synth(\analog_dpw4saw_tadsr, [\t_gate, 1, \freq, notenum.midicps])
+	y.set(
+		\envType, 0,
+		\t_gate, 1, 
+		\freq, notenum.midicps,
+		\attack, 0.001, 
+		\decay, 0.5,
+		\release, 0.01,
+		\timbre, rrand(0.0,0.9),
+		\waveShape, rrand(0.0,1.0),
+		\fm1Amount, 0.15,
+		\fm2Amount, 0.45,
+		\pan, rrand(-1.0,1.0)
+	)
+}, chan: 1);
+MIDIFunc.noteOff({ y.set(\gate, 0) }, chan: 1);
+
+)
+
+Ndef(\soundin, { SoundIn.ar([0,1]) }).play
+
+(
+// Main.packages.asDict.at('mk-synthlib')
+MKSynthLib()
+)
+
+Char.binaryOpCharacters.choose;
+"😵"
+"🥸"
+(
+100.do{
+	["🤠", "🪱", "🦑", "🥀", "🌻", "🍁", "🍇",  "🦞", "🍍", "🧀" ].choose.post;
+}
+)
+
+(
+// s.record;
+// p = Particular.new(2);
+Pdef(\g1,
+	Ppar([
+		Pbind(
+			\instrument, p.def("gauss", "tri"), 
+			\amp, 0*Pseg(Pwhite(0.001,1.0), Pwhite(1,32), \exp, inf),
+			\dur, Pbrown(1.0,3.0, 0.01) * Pwrand([Pwhite(0.01, 0.1, 1), Rest(0.1)], [0.75, 0.25], inf),
+			\pan, Pwhite(-1.0,1.0),
+			\sustain, Pkey(\dur) * 0.5,
+			\freq, Pwhite(130.0,2011.0)
+		),
+		Pbind(
+			\instrument, p.def("sinc", "fm"), 
+			\amp, 0.0 *Pseg(Pwhite(0.001,1.0), Pwhite(1,32), \exp, inf),
+			\dur, 0.5*Pwrand([Pwhite(0.01, 0.2, 1), Rest(0.01)], [0.75, 0.25], inf),
+			\pan, Pwhite(-1.0,1.0),
+			\sustain, Pkey(\dur) * 0.5,
+			\freq, Pwhite(130.0,2011.0)
+		),
+		Pbind(
+			\waveshapeA, Pwhite(0,10),
+			\waveshapeB, Pwhite(0,10),
+			\waveshapeCrossfade, Pseg(Pwhite(-1.0,1.0), Pwhite(1,16), \lin, inf),
+			\dur,4,
+			\play, Pfunc({|ev|
+				Ndef(\waveShapeOut).xset(\waveshapeA, ev[\waveshapeA], \waveshapeB, ev[\waveshapeB])
+			})
+		)
+	]
+	)
+
+);
+)
+
+
+(
+
+Ndef(\waveShapeOut).source = Pdef(\g1);
+Ndef(\waveShapeOut)[1] = \filter -> {|in|
+	var sig = SynthDef.wrap(~waveshapeXWrap,  prependArgs: [in]);
+	sig
+};
+Ndef(\waveShapeOut)
+.mold(2, 'audio')
+.fadeTime(0.1)
+.play;
+Ndef(\waveShapeOut).set(
+	\waveshapeCrossfade, 0.5, 
+	\waveshapeA, 0,
+	\waveshapeB, 3,
+);
+
+// Ndef(\waveShapeOut).gui;
+)
