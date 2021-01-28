@@ -1,0 +1,10 @@
+(
+  name: "mk-synthlib",
+  summary: "Synth library made and used by Mads Kjeldgaard",
+  version: "0.0.1",
+  schelp: "MKSynthLib",
+  dependencies: [],
+  url: "https://github.com/madskjeldgaard/mk-synthlib/",
+  license: "GPL",
+  copyright: "Mads Kjeldgaard, 2021"
+)
