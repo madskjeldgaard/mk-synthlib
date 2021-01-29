@@ -203,10 +203,7 @@ Pmono(\west,
 		);
 
 		// Panning
-		sig = SynthDef.wrap(
-			~panFunc.value(numChannelsIn: 1, numChannelsOut: numChannels),  
-			prependArgs: [sig]
-		);
+		sig = MKSynthLib.embedWithPanner(numChannelsIn: 1, sig: sig);
 
 		// Output stage
 		Out.ar(out, sig);

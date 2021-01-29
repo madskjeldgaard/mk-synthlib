@@ -98,10 +98,7 @@ Pmono(\benjo,
 		);
 
 		// Panning
-		sig = SynthDef.wrap(
-			~panFunc.value(numChannelsIn: 1, numChannelsOut: numChannels),  
-			prependArgs: [sig]
-		);
+		sig = MKSynthLib.embedWithPanner(numChannelsIn: 1, sig: sig);
 
 		Out.ar(out, sig);
 	}).add;

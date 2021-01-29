@@ -236,10 +236,7 @@ Pdef(\pm6,
 				// var env = SynthDef.wrap(~envs[envType],  prependArgs: [dur, envDone]);
 
 				// Panning
-				sig = SynthDef.wrap(
-					~panFunc.value(numChannelsIn: 2, numChannelsOut: numChannels),  
-					prependArgs: [sig]
-				);
+				sig = MKSynthLib.embedWithPanner(numChannelsIn: 2, sig: sig);
 
 				Out.ar(out, sig);
 

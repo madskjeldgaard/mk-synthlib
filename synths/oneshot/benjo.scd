@@ -99,10 +99,7 @@ Pbind(
 			sig = MKSynthLib.embedWithVCA(envType, \oneshot, sig, dur, envDone);
 
 			// Panning
-			sig = SynthDef.wrap(
-				~panFunc.value(numChannelsIn: 1, numChannelsOut: numChannels),  
-				prependArgs: [sig]
-			);
+			sig = MKSynthLib.embedWithPanner(numChannelsIn: 1, sig: sig);
 
 			Out.ar(out, sig);
 		}).add;

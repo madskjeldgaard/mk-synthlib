@@ -115,9 +115,8 @@ Pdef(\a,
 						);
 
 						// Panning
-						sig = SynthDef.wrap(
-							~panFunc.value(numChannelsIn: 2, numChannelsOut: numChannels),  
-							prependArgs: [sig]);
+						sig = MKSynthLib.embedWithPanner(numChannelsIn: 2, sig: sig);
+						// sig = SynthDef.wrap( ~panFunc.value(numChannelsIn: 2, numChannelsOut: numChannels),  prependArgs: [sig]);
 
 							// Output stage
 							Out.ar(out, sig * amp);
