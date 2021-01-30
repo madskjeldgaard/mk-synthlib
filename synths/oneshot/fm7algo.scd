@@ -10,8 +10,8 @@
 
 				SynthDef.new(name, {
 					arg out=0, amp=0.51, 
-						freq=100, cutoff=1500, resonance=0.1, 
-						filterType=0, ratio=1, 
+						freq=100, 
+						ratio=1, 
 						detuneAmount=0.1, 
 						feedback=0, 
 						dur=4, envDone=2;
