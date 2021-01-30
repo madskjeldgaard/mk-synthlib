@@ -6,7 +6,8 @@ MKSynthLib {
 		<waveshapeWrappers, 
 		<envelopes,
 		<vcaWrappers,
-		<emojis;
+		<emojis,
+		<path;
 
 	*new {|numChannelsOut=2, verbose=true|
 		^super.new.init( numChannelsOut, verbose );
@@ -17,6 +18,7 @@ MKSynthLib {
 		if(kind.isNil, {
 			this.poster("No kind supplied for %".format(synthName), error: true)
 		}, {
+			this.poster("\t Adding synth %".format(synthName));
 			// If there is not already an array under the key
 			// Add one
 			if(synths.at(kind).isNil, {
@@ -58,7 +60,7 @@ MKSynthLib {
 		})
 	}
 
-	*embedWithPanner{|numChannelsIn, sig|
+	*embedWithPanner{|numChannelsIn=1, sig|
 		^SynthDef.wrap(
 			this.getPanFunc(numChannelsIn: numChannelsIn, numChannelsOut: numChansOut),  
 			prependArgs: [sig]
@@ -82,11 +84,17 @@ MKSynthLib {
 			case 
 			// Mono input
 			{ numChannelsIn == 1 } { 
-				{|sig, pan=0| Pan2.ar(sig, pan)} 
+				{|sig, pan=0, panFreq=1, autopan=0, panShape=1| 
+					var panner = MKAutoPan.ar(pan:pan, panFreq:panFreq, autopan:autopan, panShape:panShape);
+					Pan2.ar(sig, panner)
+				} 
 			}
 			// Stereo input
 			{ numChannelsIn == 2 } { 
-				{|sig, pan=0|Balance2.ar(sig[0], sig[1], pan) }		
+				{|sig, pan=0, panFreq=1, autopan=0, panShape=1| 
+					var panner = MKAutoPan.ar(pan:pan, panFreq:panFreq, autopan:autopan, panShape:panShape);
+					Balance2.ar(sig[0], sig[1], panner) 
+				}		
 			}
 		}
 		// Multichannel output
@@ -94,14 +102,33 @@ MKSynthLib {
 			case
 			// Mono input
 			{ numChannelsIn == 1 } { 
-				{|sig, pan=0, width=2, orientation=0.5|
-					PanAz.ar(numChannelsOut, sig, pan, width: width, orientation: orientation) 
+				{|sig, pan=0, width=2, orientation=0.5, panFreq=1, autopan=0, panShape=1|
+					var panner = MKAutoPan.ar(pan:pan, panFreq:panFreq, autopan:autopan, panShape:panShape);
+
+					PanAz.ar(
+						numChannelsOut, 
+						sig, 
+						panner, 
+						width: width, 
+						orientation: orientation
+					) 
 				}
 			}
 			// Stereo input
-			{ numChannelsIn == 2 } { 
-				{|sig, pan=0, spread=1, width=2.0, orientation=0.5, levelComp=true|
-					SplayAz.ar(numChannelsOut, sig,  spread: spread,  level: 1,  width: width,  center: pan,  orientation: orientation,  levelComp: levelComp)
+			{ numChannelsIn > 1 } { 
+				{|sig, pan=0, spread=1, width=2.0, orientation=0.5, levelComp=true, panFreq=1, autopan=0, panShape=1|
+					var panner = MKAutoPan.ar(pan:pan, panFreq:panFreq, autopan:autopan, panShape:panShape);
+
+					SplayAz.ar(
+						numChannelsOut, 
+						sig,  
+						spread: spread,  
+						level: 1,  
+						width: width,  
+						center: panner,  
+						orientation: orientation,  
+						levelComp: levelComp
+					)
 				}
 			};
 
@@ -179,6 +206,7 @@ MKSynthLib {
 	init{|numChannels, verbose|
 		var thisPath = Main.packages.asDict.at('mk-synthlib');
 		var synthlibLoader = load(thisPath +/+ "main.scd");
+		path = thisPath;
 
 		numChansOut = numChannels;
 
@@ -191,7 +219,7 @@ MKSynthLib {
 		waveshapeWrappers = IdentityDictionary[];
 		emojis = ["🤠", "🪱", "🦑", "🥀", "🌻", "🍁", "🍇",  "🦞", "🍍", "🧀" ];
 
-		Server.local.doWhenBooted{
+		Server.local.waitForBoot{
 			this.loadMessage;
 			synthlibLoader.value(numChannelsOut: numChannels);
 		}
@@ -207,5 +235,18 @@ MKSynthLib {
 			"".postln;
 		})
 	}
-
 }
+
+// Convenience function for calculating auto panning values
+MKAutoPan{
+	*ar{|pan=1, panFreq=1, autopan=0, panShape=1.0|
+		// Width is divided by two to make it go from saw to tri from 0 to 1 (instead of back to saw at the end)
+		var panner = VarSaw.ar(panFreq, 0, width: panShape / 2.0);
+		panner = XFade2.ar(K2A.ar(pan), panner, autopan.linlin(0.0,1.0,-1.0,1.0));
+		^panner
+	}
+	*kr{
+
+	}
+}
+
