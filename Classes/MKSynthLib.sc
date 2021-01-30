@@ -241,12 +241,10 @@ MKSynthLib {
 MKAutoPan{
 	*ar{|pan=1, panFreq=1, autopan=0, panShape=1.0|
 		// Width is divided by two to make it go from saw to tri from 0 to 1 (instead of back to saw at the end)
-		var panner = VarSaw.ar(panFreq, 0, width: panShape / 2.0);
+		var panner = VarSaw.ar(panFreq, 0, width: panShape / 2.0).linlin(-1.0,1.0,pan,(-1)*pan);
 		panner = XFade2.ar(K2A.ar(pan), panner, autopan.linlin(0.0,1.0,-1.0,1.0));
 		^panner
 	}
-	*kr{
-
-	}
+	// *kr{ }
 }
 
