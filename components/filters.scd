@@ -40,7 +40,7 @@ var filters = (
 
 			// Mix through signals
 			var morphAmount = MKNC.ar("filterMorph", 0.5, suffix:suffix);
-			SelectX.ar((morphAmount * 2), [lp, bp, hp]);
+			LinSelectX.ar((morphAmount * 2), [lp, bp, hp]);
 		}
 	},
 	morphingParallel: {|suffix|
@@ -55,7 +55,7 @@ var filters = (
 
 				// Mix through signals
 				var morphAmount = MKNC.ar("filterMorph", 0.5, suffix:(filterNum+1).asString ++ suffix);
-				SelectX.ar((morphAmount * 2), [lp, bp, hp]);
+				LinSelectX.ar((morphAmount * 2), [lp, bp, hp]);
 			});
 			sig
 		}
