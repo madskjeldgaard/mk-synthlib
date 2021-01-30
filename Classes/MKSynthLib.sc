@@ -138,7 +138,7 @@ MKSynthLib {
 
 		path = Main.packages.asDict.at('mk-synthlib');
 
-		synthlibLoader= load(path +/+ "main.scd");
+		synthlibLoader = load(path +/+ "main.scd");
 
 		numChansOut = numChannels;
 
@@ -151,8 +151,12 @@ MKSynthLib {
 		waveshapeWrappers = IdentityDictionary[];
 		
 		Server.local.waitForBoot{
-			this.loadMessage;
-			synthlibLoader.value(numChannelsOut: numChannels);
+			fork{
+				MKFilterLib.loadFilters();
+				Server.local.sync;
+				this.loadMessage;
+				synthlibLoader.value(numChannelsOut: numChannels);
+			}
 		}
 	}
 
@@ -275,8 +279,10 @@ MKFilterLib{
 	}
 
 	*loadFilters{
-		var path = MKSynthLib.path +/+ "components" +/+ "filters.scd";
-		filters = path.load;
+		var path = (MKSynthLib.path +/+ "components" +/+ "filters.scd");
+		if(filters.isNil, {
+			filters = path.load;
+		})
 	}
 
 	*embedWithFilter{|filterName, sig, suffix=""|
