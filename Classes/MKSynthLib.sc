@@ -284,12 +284,26 @@ MKFilterLib{
 
 // Named control with prefix and suffix
 MKNC {
-	*kr{arg name, values, lags, fixedLag = false, spec, suffix, prefix;
-		name = (prefix.asString ++ name.asString ++ suffix.asString);
+	*kr{arg name, values, lags, fixedLag = false, spec, suffix="", prefix="";
+		name = this.fixedName(name, prefix, suffix);
 		^NamedControl.new(name, values, \control, lags, fixedLag, spec)
 	}
-	*ar { arg  name, values, lags, spec, suffix, prefix;
-		name = (prefix.asString ++ name.asString ++ suffix.asString);
+	*ar { arg  name, values, lags, spec, suffix="", prefix="";
+		name = this.fixedName(name, prefix, suffix);
 		^NamedControl.new(name, values, \audio, lags, false, spec)
+	}
+
+	*ir { arg  name, values, lags, spec, suffix="", prefix="";
+		name = this.fixedName(name, prefix, suffix);
+		^NamedControl.new(name, values, \scalar, lags, false, spec)
+	}
+
+	*tr { arg  name, values, lags, spec, suffix="", prefix="";
+		name = this.fixedName(name, prefix, suffix);
+		^NamedControl.new(name, values, \trigger, lags, false, spec)
+	}
+
+	*fixedName{|name,prefix="",suffix=""|
+		^(prefix.asString ++ name.asString ++ suffix.asString);
 	}
 }
