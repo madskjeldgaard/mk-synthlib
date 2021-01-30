@@ -3,7 +3,7 @@
 		MKSynthLib.shapeWrapperKinds.do{|shapeFuncName|
 			MKFilterLib.filterTypes.do{|filterType|
 				var basename = "fmcloud";
-				var name = "%_%_%".format(basename, envType, filterType, shapeFuncName).asSymbol;
+				var name = "%_%_%_%".format(basename, envType, filterType, shapeFuncName).asSymbol;
 
 				MKSynthLib.addSynthName(name, kind: \oneshot);
 

@@ -13,6 +13,10 @@ MKSynthLib {
 		^super.new.init( numChannelsOut, verbose );
 	}
 
+	*initClass{
+		emojis = ["🤠", "🪱", "🦑", "🥀", "🌻", "🍁", "🍇",  "🦞", "🍍", "🧀" ];
+	}
+
 	// Synthdef names
 	*addSynthName{|synthName, kind|
 		if(kind.isNil, {
@@ -130,9 +134,11 @@ MKSynthLib {
 
 
 	init{|numChannels, verbose|
-		var thisPath = Main.packages.asDict.at('mk-synthlib');
-		var synthlibLoader = load(thisPath +/+ "main.scd");
-		path = thisPath;
+		var synthlibLoader;
+
+		path = Main.packages.asDict.at('mk-synthlib');
+
+		synthlibLoader= load(path +/+ "main.scd");
 
 		numChansOut = numChannels;
 
@@ -143,8 +149,7 @@ MKSynthLib {
 		vcaWrappers = IdentityDictionary[];
 		shapeBuffers = IdentityDictionary[];
 		waveshapeWrappers = IdentityDictionary[];
-		emojis = ["🤠", "🪱", "🦑", "🥀", "🌻", "🍁", "🍇",  "🦞", "🍍", "🧀" ];
-
+		
 		Server.local.waitForBoot{
 			this.loadMessage;
 			synthlibLoader.value(numChannelsOut: numChannels);
@@ -274,10 +279,10 @@ MKFilterLib{
 		filters = path.load;
 	}
 
-	*embedWithFilter{|filterName, sig, suffix|
+	*embedWithFilter{|filterName, sig, suffix=""|
 		^SynthDef.wrap(this.getFilterWrapper(filterName, suffix),  prependArgs: [sig])
 	} 
-	*getFilterWrapper{|filterName, suffix|
+	*getFilterWrapper{|filterName, suffix=""|
 		^filters.at(filterName).value(suffix);
 	}
 
@@ -310,4 +315,40 @@ MKNC {
 	*fixedName{|name,prefix="",suffix=""|
 		^(prefix.asString ++ name.asString ++ suffix.asString);
 	}
+}
+
+MKGenPat{
+	*new{|synthDefName=\default, wrapInPdef=true|
+		this.synthDefExists(synthDefName).if({
+			this.postPatFor(synthDefName, wrapInPdef)
+		})
+	}
+
+	*synthDefExists{|synthDefName|
+		^SynthDescLib.global.synthDescs.at(synthDefName).isNil.not;
+	}
+
+	*postPatFor {|synthDef=\default, wrapInPdef=true|
+		var controls = SynthDescLib.global.synthDescs.at(synthDef).controls;
+
+		if(wrapInPdef, {"Pdef('%', ".format(MKSynthLib.emojis.choose).postln});
+		if(wrapInPdef, "\t".post);
+		"Pbind(".postln;
+		if(wrapInPdef, "\t".post);
+		"\t%instrument, %%,".format("\\", "\\", synthDef.asSymbol).postln;
+		controls.do{|control| 
+				var name = control.name;
+				var val = control.defaultValue;
+
+				// Check that synth doesn't have a duration of 0 by default (making sc explode)
+				val = if(name == \dur && val == 0.0, { 1.0 }, { val });
+				if(wrapInPdef, "\t".post);
+				"\t%%, %,".format("\\", name, val).postln
+		};
+		if(wrapInPdef, "\t".post);
+		")".postln;
+
+		if(wrapInPdef, {")".postln});
+	}
+
 }
