@@ -269,7 +269,7 @@ MKPanLib {
 MKFilterLib{
 	classvar <filters;
 
-	*new{|filterName, sig, suffix|
+	*new{|filterName, sig, suffix=""|
 		this.loadFilters;
 		^this.embedWithFilter(filterName, sig, suffix)
 	}
@@ -313,14 +313,15 @@ MKNC {
 	}
 
 	*fixedName{|name,prefix="",suffix=""|
-		^(prefix.asString ++ name.asString ++ suffix.asString);
+		^(prefix.asString ++ name.asString ++ suffix.asString).asSymbol;
+
 	}
 }
 
 MKGenPat{
-	*new{|synthDefName=\default, wrapInPdef=true|
+	*new{|synthDefName=\default, wrapInPdef=true, randomize=false|
 		this.synthDefExists(synthDefName).if({
-			this.postPatFor(synthDefName, wrapInPdef)
+			this.postPatFor(synthDefName, wrapInPdef, randomize)
 		})
 	}
 
@@ -328,7 +329,7 @@ MKGenPat{
 		^SynthDescLib.global.synthDescs.at(synthDefName).isNil.not;
 	}
 
-	*postPatFor {|synthDef=\default, wrapInPdef=true|
+	*postPatFor {|synthDef=\default, wrapInPdef=true, randomize=true|
 		var controls = SynthDescLib.global.synthDescs.at(synthDef).controls;
 
 		if(wrapInPdef, {"Pdef('%', ".format(MKSynthLib.emojis.choose).postln});
@@ -342,6 +343,8 @@ MKGenPat{
 
 				// Check that synth doesn't have a duration of 0 by default (making sc explode)
 				val = if(name == \dur && val == 0.0, { 1.0 }, { val });
+				val = if(randomize && val.isKindOf(Number), { val * rrand(0.9,1.1) }, { val });
+
 				if(wrapInPdef, "\t".post);
 				"\t%%, %,".format("\\", name, val).postln
 		};

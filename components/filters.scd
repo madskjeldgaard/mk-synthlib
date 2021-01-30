@@ -1,6 +1,6 @@
 (
 var filters = (
-	dfm1: {|suffix|
+	dfm1: {|suffix=""|
 		{|sig|
 
 			DFM1.ar(
@@ -14,7 +14,7 @@ var filters = (
 
 		}
 	},
-	svf: {|suffix|
+	svf: {|suffix=""|
 		{|sig|
 			SVF.ar(
 				sig,

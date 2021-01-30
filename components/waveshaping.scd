@@ -88,7 +88,7 @@ Ndef(\b).copy(\c).set(
 	MKSynthLib.addWaveshapeWrapper(\ws, {
 		arg sig, 
 		waveshapeGain=1,
-		waveshapeAmount=1, 
+		waveshapeAmount=0.01, 
 		waveshape=0;
 		var clean = sig;
 
@@ -103,7 +103,7 @@ Ndef(\b).copy(\c).set(
 	// This one crossfades
 	MKSynthLib.addWaveshapeWrapper(\wxs, {
 		arg sig, 
-		waveshapeAmount=1,
+		waveshapeAmount=0.01,
 		waveshapeGain=1,
 		waveshapeA=0,
 		waveshapeB=4,
