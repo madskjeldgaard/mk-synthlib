@@ -98,32 +98,31 @@ Pdef(\a,
 					// Waveshaping
 					sig = MKSynthLib.embedWithWaveshaper(shapeFuncName, sig);
 
-						// Filtering
-						calculatedCutoff = env.lag(Rand(0.1,1.0) * dur / 10.0).linexp(
-							0.0,
-							1.0,
-							((1.0-filterModAmount) * cutoff).clip(20.0,20000.0),
-							cutoff
-						) * detune.lag(Rand(0.0,0.25) * dur / 10).linlin(-1.0,1.0,1.0,1.0-filterModAmount);
+					// Filtering
+					calculatedCutoff = env.lag(Rand(0.1,1.0) * dur / 10.0).linexp(
+						0.0,
+						1.0,
+						((1.0-filterModAmount) * cutoff).clip(20.0,20000.0),
+						cutoff
+					) * detune.lag(Rand(0.0,0.25) * dur / 10).linlin(-1.0,1.0,1.0,1.0-filterModAmount);
 
-						sig = DFM1.ar(
-							sig,  
-							calculatedCutoff.clip(20.0,20000.0),	
-							resonance,  
-							type: type,  
-							noiselevel: 0.0003
-						);
+					sig = DFM1.ar(
+						sig,  
+						calculatedCutoff.clip(20.0,20000.0),	
+						resonance,  
+						type: type,  
+						noiselevel: 0.0003
+					);
 
-						// Panning
-						sig = MKSynthLib.embedWithPanner(numChannelsIn: 2, sig: sig);
-						// sig = SynthDef.wrap( ~panFunc.value(numChannelsIn: 2, numChannelsOut: numChannels),  prependArgs: [sig]);
+					// Panning
+					sig = MKSynthLib.embedWithPanner(numChannelsIn: 2, sig: sig);
+					// sig = SynthDef.wrap( ~panFunc.value(numChannelsIn: 2, numChannelsOut: numChannels),  prependArgs: [sig]);
 
-							// Output stage
-							Out.ar(out, sig * amp);
-						}).add;
+					// Output stage
+					Out.ar(out, sig * amp);
+				}).add;
 
-					};
 			};
-
 		};
-	}
+	};
+}

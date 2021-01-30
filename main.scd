@@ -5,25 +5,25 @@
 	s.waitForBoot{
 		fork{
 
-			PathName("components").filesDo{|file| 
-				var path = file.fullPath;
-				"Loading %".format(file.fileName).postln;
+			PathName(MKSynthLib.path +/+ "components").filesDo{|file| 
+				var path = file.fullPath.postln;
+				MKSynthLib.poster("Loading %".format(file.fileName));
 				path.load
 			};
 
 			s.sync;
-
+			
 			// Synths that need to be manually killed
-			PathName("synths").folders.do{|directory|
+			PathName(MKSynthLib.path +/+ "synths").folders.do{|directory|
 				directory.filesDo{|file|
 					var path = file.fullPath;
-					"Loading %".format(file.fileName).postln;
-
-					path.load.value(numChannels: ~numChannels)
+					MKSynthLib.poster("Loading %".format(file.fileName));
+					path.load.value(numChannels: numChannelsOut);
 				};
 			};
 
 			s.sync;
+			MKSynthLib.poster("DONE LOADING MKSynthLib");
 			// See and test all loaded SynthDefs:
 			// SynthDescLib.global.browse;
 

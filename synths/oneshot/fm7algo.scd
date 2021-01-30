@@ -23,10 +23,10 @@
 
 					sig = MKSynthLib.embedWithVCA(envType, \oneshot, sig, dur, envDone);
 					sig = MKSynthLib.embedWithWaveshaper(shapeFuncName, sig);
-					sig = DFM1.ar(sig, cutoff, resonance, 1.0, filterType);
+					sig = MKFilterLib.new(\dfm1, sig);
 					sig = MKSynthLib.embedWithPanner(2, Splay.ar(sig, spread: 0.25));
 					Out.ar(out, sig * amp)
-				}).add
+				}).store
 			}
 		}
 	}

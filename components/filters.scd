@@ -14,7 +14,7 @@ var filters = (
 
 		}
 	},
-	scf: {|suffix|
+	svf: {|suffix|
 		{|sig|
 			SVF.ar(
 				sig,
@@ -28,6 +28,7 @@ var filters = (
 			)
 		}
 	},
+	// Picked this up here: https://scsynth.org/t/morphing-filters/1790/6
 	morphing: {|suffix|
 		{|sig|
 			var freq = MKNC.ar("morphFreq", 1500, suffix: suffix);
@@ -38,9 +39,27 @@ var filters = (
 			var hp = BHiPass4.ar(sig, freq: freq, rq: 0.3);
 
 			// Mix through signals
-			SelectX.ar((MKNC.ar("filterMorph", 0.5, suffix:suffix) * 2), [lp, bp, hp]);
+			var morphAmount = MKNC.ar("filterMorph", 0.5, suffix:suffix);
+			SelectX.ar((morphAmount * 2), [lp, bp, hp]);
 		}
-	}
+	},
+	morphingParallel: {|suffix|
+		{|sig|
+			var filters = Array.fill(2, {|filterNum|
+				var freq = MKNC.ar("morphFreq", 1500, suffix: (filterNum+1).asString ++ suffix);
+
+				// Render Low/Band/High-pass signals
+				var lp = BLowPass4.ar(sig, freq, rq: 0.25);
+				var bp = BHiPass4.ar(lp, freq: freq, rq: 1);
+				var hp = BHiPass4.ar(sig, freq: freq, rq: 0.3);
+
+				// Mix through signals
+				var morphAmount = MKNC.ar("filterMorph", 0.5, suffix:(filterNum+1).asString ++ suffix);
+				SelectX.ar((morphAmount * 2), [lp, bp, hp]);
+			});
+			sig
+		}
+	},
 );
 
 filters

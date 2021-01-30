@@ -280,6 +280,10 @@ MKFilterLib{
 	*getFilterWrapper{|filterName, suffix|
 		^filters.at(filterName).value(suffix);
 	}
+
+	*filterTypes{
+		^filters.keys.asArray	
+	}
 }
 
 // Named control with prefix and suffix
