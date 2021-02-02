@@ -3,6 +3,7 @@ MKSynthLib {
 		<numChansOut,
 		<synths, 
 		<shapeBuffers, 
+		<grainShapeBuffers,
 		<waveshapeWrappers, 
 		<envelopes,
 		<emojis,
@@ -147,6 +148,11 @@ MKSynthLib {
 		^shapeBuffers.size;
 	}
 
+	*addGrainShapeBuffer{|name, buffer|
+		this.poster("Adding grainshape buffer %".format(name));
+		grainShapeBuffers.put(name, buffer);
+	}
+
 	// Synth plumming
 	*kinds{
 		^synths.keys
@@ -182,6 +188,7 @@ MKSynthLib {
 		synths = IdentityDictionary[];
 		envelopes = IdentityDictionary[];
 		shapeBuffers = IdentityDictionary[];
+		grainShapeBuffers = IdentityDictionary[];
 		waveshapeWrappers = IdentityDictionary[];
 		
 		Server.local.waitForBoot{
