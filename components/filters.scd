@@ -17,7 +17,7 @@ var filters = (
 
 			DFM1.ar(
 				sig, 
-				cutoff.poll,
+				cutoff,
 				MKNC.ar("resonance", 0.5, suffix:suffix), 
 				MKNC.ar("filterGain", 1.0, suffix: suffix), 
 				MKNC.ar("filterType", 0.0, suffix: suffix), 

@@ -1,3 +1,4 @@
+/*
 {
 	MKSynthLib.getEnvelopeNamesForKind.do{|envType|
 		MKSynthLib.shapeWrapperKinds.do{|shapeFuncName|
@@ -13,13 +14,14 @@
 
 					var sig = Silent.ar();
 
-					sig = MKSynthLib.embedWithVCA(envType, \oneshot, sig, dur, envDone);
-					sig = MKSynthLib.embedWithWaveshaper(shapeFuncName, sig);
-					sig = MKFilterLib.new(filterType, sig);
-					sig = MKSynthLib.embedWithPanner(2, Splay.ar(sig, spread: 0.25));
+					// sig = MKSynthLib.embedWithVCA(envType, \oneshot, sig, dur, envDone);
+					// sig = MKSynthLib.embedWithWaveshaper(shapeFuncName, sig);
+					// sig = MKFilterLib.new(filterType, sig);
+					// sig = MKSynthLib.embedWithPanner(2, Splay.ar(sig, spread: 0.25));
 					Out.ar(out, sig * amp)
 				}).store
 			}
 		}
 	}
 }
+*/

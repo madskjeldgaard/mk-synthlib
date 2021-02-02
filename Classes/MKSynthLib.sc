@@ -5,7 +5,6 @@ MKSynthLib {
 		<shapeBuffers, 
 		<waveshapeWrappers, 
 		<envelopes,
-		<vcaWrappers,
 		<emojis,
 		<path,
 		<initialized;
@@ -28,10 +27,10 @@ MKSynthLib {
 					func = { | out=0, amp=0.25, dur=1, envDone=2|
 						var sig = SynthDef.wrap(synthfunc);
 
-						// sig = MKSynthLib.embedWithVCA(envelopeName: envType, kind: \oneshot, sig: sig, dur: dur, envDone: envDone);
 						sig = sig * MKSynthLib.getEnvelopeWrapped(
 							envelopeName: envType, dur: dur, envDone: envDone, prefix: "vca"
 						);
+
 						sig = MKSynthLib.embedWithWaveshaper(shapeFuncName, sig);
 						sig = MKFilterLib.new(filterName: filterType, sig: sig, filterEnvType: envType, envDone: 0);
 						sig = MKSynthLib.embedWithPanner(numChannelsIn, sig);
@@ -48,8 +47,7 @@ MKSynthLib {
 		};
 		
 		this.poster("Done generating synthdefs for %".format(basename));
-		MKGenPat.new(theseSynths.choose);
-
+		// MKGenPat.new(theseSynths.choose);
 	}
 
 	*initClass{
@@ -102,20 +100,13 @@ MKSynthLib {
 
 		})
 	}
+
 	*embedWithPanner{|numChannelsIn=1, sig|
 		if(initialized.not, { this.init() });
 
 		^MKPanLib.new(numChannelsIn: numChannelsIn, numChannelsOut: numChansOut, sig: sig)
 	}
 	
-	// Wraps an envelope around the signal and uses it to scale the amplitude
-	*embedWithVCA{|envelopeName, kind, sig, dur, envDone|
-		^SynthDef.wrap({|sig, dur, envDone|
-			sig * this.getEnvelopeWrapped(envelopeName: envelopeName, dur: dur, envDone: envDone, prefix: "vca");
-		},  prependArgs: [sig, dur, envDone]
-		)
-	}
-
 	// Waveshaping
 	*addWaveshapeBuffer{|name, buffer|
 		this.poster("Adding waveshape buffer %".format(name));
@@ -190,7 +181,6 @@ MKSynthLib {
 
 		synths = IdentityDictionary[];
 		envelopes = IdentityDictionary[];
-		vcaWrappers = IdentityDictionary[];
 		shapeBuffers = IdentityDictionary[];
 		waveshapeWrappers = IdentityDictionary[];
 		

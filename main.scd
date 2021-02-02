@@ -1,6 +1,4 @@
-{|numChannelsOut=2|
-
-	~numChannels = numChannelsOut;
+{
 
 	s.waitForBoot{
 		fork{
@@ -18,7 +16,7 @@
 				directory.filesDo{|file|
 					var path = file.fullPath;
 					MKSynthLib.poster("Loading %".format(file.fileName));
-					path.load.value(numChannels: numChannelsOut);
+					path.load;
 				};
 			};
 
