@@ -13,6 +13,41 @@ MKSynthLib {
 		^super.new.init( numChannelsOut, verbose );
 	}
 
+	*add{|basename, synthfunc|
+		var theseSynths = [];
+		var kind = \oneshot;
+		var func;
+
+		this.getEnvelopeNamesForKind.do{|envType|
+			this.shapeWrapperKinds.do{|shapeFuncName|
+				MKFilterLib.filterTypes.do{|filterType|
+					var name = "%_%_%_%".format(basename, envType, filterType, shapeFuncName).asSymbol;
+
+					// Wrap the input function
+					func = { | out=0, amp=0.25, dur=1, envDone=2|
+						var sig = SynthDef.wrap(synthfunc);
+
+						sig = MKSynthLib.embedWithVCA(envType, \oneshot, sig, dur, envDone);
+						sig = MKSynthLib.embedWithWaveshaper(shapeFuncName, sig);
+						sig = MKFilterLib.new(filterType, sig);
+						// sig = MKSynthLib.embedWithPanner(sig.size, sig);
+
+						Out.ar(out, sig*amp);
+					};
+
+					SynthDef.new(name, func).store;
+					theseSynths = theseSynths.add(name);
+					this.addSynthName(name, kind);
+
+				}
+			}
+		};
+		
+		this.poster("Done generating synthdefs for %".format(basename));
+		MKGenPat.new(theseSynths.choose);
+
+	}
+
 	*initClass{
 		emojis = ["🤠", "🪱", "🦑", "🥀", "🌻", "🍁", "🍇",  "🦞", "🍍", "🧀" ];
 	}
@@ -158,6 +193,10 @@ MKSynthLib {
 				synthlibLoader.value(numChannelsOut: numChannels);
 			}
 		}
+	}
+
+	*loadSynthLib{
+
 	}
 
 	loadMessage{
@@ -354,10 +393,7 @@ MKGenPat{
 				if(wrapInPdef, "\t".post);
 				"\t%%, %,".format("\\", name, val).postln
 		};
-		if(wrapInPdef, "\t".post);
-		")".postln;
-
-		if(wrapInPdef, {")".postln});
+		if(wrapInPdef, {"\t)\n).play".postln}, {").play".postln});
 	}
 
 }
