@@ -13,7 +13,7 @@ MKSynthLib {
 		^super.new.init( numChannelsOut, verbose );
 	}
 
-	*add{|basename, synthfunc|
+	*add{|basename, synthfunc, numChannelsIn=1|
 		var theseSynths = [];
 		var kind = \oneshot;
 		var func;
@@ -30,9 +30,9 @@ MKSynthLib {
 						sig = MKSynthLib.embedWithVCA(envType, \oneshot, sig, dur, envDone);
 						sig = MKSynthLib.embedWithWaveshaper(shapeFuncName, sig);
 						sig = MKFilterLib.new(filterType, sig);
-						// sig = MKSynthLib.embedWithPanner(sig.size, sig);
+						sig = MKSynthLib.embedWithPanner(numChannelsIn, sig);
 
-						Out.ar(out, sig*amp);
+						Out.ar(out, sig * amp);
 					};
 
 					SynthDef.new(name, func).store;
