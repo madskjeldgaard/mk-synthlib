@@ -7,10 +7,11 @@ MKSynthLib {
 		<envelopes,
 		<vcaWrappers,
 		<emojis,
-		<path;
+		<path,
+		<initialized;
 
 	*new {|numChannelsOut=2, verbose=true|
-		^super.new.init( numChannelsOut, verbose );
+		^this.init( numChannelsOut, verbose );
 	}
 
 	*add{|basename, synthfunc, numChannelsIn=1|
@@ -27,9 +28,12 @@ MKSynthLib {
 					func = { | out=0, amp=0.25, dur=1, envDone=2|
 						var sig = SynthDef.wrap(synthfunc);
 
-						sig = MKSynthLib.embedWithVCA(envType, \oneshot, sig, dur, envDone);
+						// sig = MKSynthLib.embedWithVCA(envelopeName: envType, kind: \oneshot, sig: sig, dur: dur, envDone: envDone);
+						sig = sig * MKSynthLib.getEnvelopeWrapped(
+							envelopeName: envType, dur: dur, envDone: envDone, prefix: "vca"
+						);
 						sig = MKSynthLib.embedWithWaveshaper(shapeFuncName, sig);
-						sig = MKFilterLib.new(filterType, sig);
+						sig = MKFilterLib.new(filterName: filterType, sig: sig, filterEnvType: envType, envDone: 0);
 						sig = MKSynthLib.embedWithPanner(numChannelsIn, sig);
 
 						Out.ar(out, sig * amp);
@@ -78,8 +82,8 @@ MKSynthLib {
 		^envelopes.at(kind).at(envelopeName)
 	}
 
-	*getEnvelopeWrapped{|envelopeName, kind, dur=1, envDone=2|
-		^SynthDef.wrap(this.getEnvelopeWrapper(envelopeName, kind), prependArgs: [dur, envDone])
+	*getEnvelopeWrapped{|envelopeName, envDone=2, dur=1, prefix="", suffix=""|
+		^MKEnvLib.new(envelopeName, envDone: envDone, dur: dur, prefix: prefix, suffix: suffix)	
 	}
 
 	*addEnvelope{|envName, kind, envelope|
@@ -99,13 +103,15 @@ MKSynthLib {
 		})
 	}
 	*embedWithPanner{|numChannelsIn=1, sig|
+		if(initialized.not, { this.init() });
+
 		^MKPanLib.new(numChannelsIn: numChannelsIn, numChannelsOut: numChansOut, sig: sig)
 	}
 	
 	// Wraps an envelope around the signal and uses it to scale the amplitude
 	*embedWithVCA{|envelopeName, kind, sig, dur, envDone|
 		^SynthDef.wrap({|sig, dur, envDone|
-			sig * SynthDef.wrap(this.getEnvelopeWrapper(envelopeName, kind), prependArgs: [dur, envDone])
+			sig * this.getEnvelopeWrapped(envelopeName: envelopeName, dur: dur, envDone: envDone, prefix: "vca");
 		},  prependArgs: [sig, dur, envDone]
 		)
 	}
@@ -117,6 +123,8 @@ MKSynthLib {
 	}
 
 	*embedWithWaveshaper{|waveshaperName, sig|
+		if(initialized.not, { this.init() });
+
 		^SynthDef.wrap(
 			MKSynthLib.getWaveshapeWrapper(waveshaperName),  
 			prependArgs: [sig]
@@ -125,6 +133,8 @@ MKSynthLib {
 
 	// Waveshape wraper functions used with SynthDef.wrap
 	*getWaveshapeWrapper{|name|
+		if(initialized.not, { this.init() });
+
 		if(
 			waveshapeWrappers.keys.asArray.indexOfEqual(name).isNil,
 			{
@@ -168,11 +178,10 @@ MKSynthLib {
 	}
 
 
-	init{|numChannels, verbose|
+	*init{|numChannels, verbose|
 		var synthlibLoader;
-
 		path = Main.packages.asDict.at('mk-synthlib');
-
+		
 		synthlibLoader = load(path +/+ "main.scd");
 
 		numChansOut = numChannels;
@@ -191,6 +200,8 @@ MKSynthLib {
 				Server.local.sync;
 				this.loadMessage;
 				synthlibLoader.value(numChannelsOut: numChannels);
+				Server.local.sync;
+				initialized = true;
 			}
 		}
 	}
@@ -199,7 +210,7 @@ MKSynthLib {
 
 	}
 
-	loadMessage{
+	*loadMessage{
 		if(verbosity, {
 			"----------".postln;
 			"Loading mk-synthlib".postln;
@@ -309,26 +320,56 @@ MKPanLib {
 	}
 }
 
+MKEnvLib{
+	classvar <envelopes, <path;
+
+	*new{|envelopeName=\perc, envDone=2, dur=1, prefix="", suffix=""|
+		this.loadEnvelopes;
+
+		^this.embedWithEnvelope(envelopeName, envDone, dur, prefix, suffix)
+	}
+
+	*loadEnvelopes{|forceLoad=false|
+		path = ( Main.packages.asDict.at('mk-synthlib') +/+ "components" +/+ "singleshot-envelopes.scd");
+		if(envelopes.isNil or: { forceLoad }, {
+			envelopes = path.load;
+		})
+	}
+
+	*embedWithEnvelope{|envelopeName, envDone=2, dur=2, prefix="", suffix=""|
+		^SynthDef.wrap(this.getEnvelopeWrapper(envelopeName, prefix, suffix), prependArgs: [dur, envDone])
+	} 
+
+	*getEnvelopeWrapper{|envelopeName, prefix="", suffix=""|
+		^envelopes.at(envelopeName).value(prefix, suffix);
+	}
+
+	*envelopeTypes{
+		^envelopes.keys.asArray	
+	}
+}
+
 MKFilterLib{
 	classvar <filters;
 
-	*new{|filterName, sig, suffix=""|
+	*new{|filterName, sig, filterEnvType=\perc, dur=1, envDone=0, suffix=""|
 		this.loadFilters;
-		^this.embedWithFilter(filterName, sig, suffix)
+		^this.embedWithFilter(filterName, sig, filterEnvType, dur, envDone, suffix)
 	}
 
-	*loadFilters{
+	*loadFilters{|forceLoad=false|
 		var path = (MKSynthLib.path +/+ "components" +/+ "filters.scd");
-		if(filters.isNil, {
+		if(filters.isNil or: { forceLoad }, {
 			filters = path.load;
 		})
 	}
 
-	*embedWithFilter{|filterName, sig, suffix=""|
-		^SynthDef.wrap(this.getFilterWrapper(filterName, suffix),  prependArgs: [sig])
+	*embedWithFilter{|filterName, sig, filterEnvType, dur, envDone, suffix=""|
+		^SynthDef.wrap(this.getFilterWrapper(filterName, filterEnvType, suffix),  prependArgs: [sig, dur, envDone])
 	} 
-	*getFilterWrapper{|filterName, suffix=""|
-		^filters.at(filterName).value(suffix);
+
+	*getFilterWrapper{|filterName,filterEnvType=\perc, suffix=""|
+		^filters.at(filterName).value(suffix, filterEnvType);
 	}
 
 	*filterTypes{

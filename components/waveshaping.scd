@@ -1,43 +1,6 @@
 // Waveshaping buffers to be used with Shaper.ar
 // Some of these were pulled out of Aaron Lanterman's Buchla 700 project: https://github.com/lantertronics/b700ish/blob/main/b700ish.scd
-/*
-(
 
-Ndef(\lfo, {|freq=0.1| LFTri.kr(freq) });
-
-Ndef(\a, {|freq=141, modfreq=0.1, shapebufA, shapebufB, crossfade=0, amp=0.1|
-	var lfo = LFTri.kr(modfreq);
-	var sig = SinOsc.ar(freq: SinOsc.ar(lfo.lag.lag*215) * lfo.lag.exprange(freq/2.0, freq),  phase: 0.0,  mul: 1.0,  add: 0.0);
-	var shapeA = Shaper.ar(shapebufA, sig);
-	var shapeB = Shaper.ar(shapebufB, sig);
-
-	sig = XFade2.ar(shapeA, shapeB, crossfade) * amp;
-	Pan2.ar(sig * lfo, lfo);
-})
-.set(
-	\shapebufA, ~shaperBuffers[\fulltonewheel], 
-	\shapebufB, ~shaperBuffers[\altsaw]
-)
-.map(\crossfade, Ndef(\lfo))
-.mold(2)
-.play;
-
-Ndef(\a).copy(\b).set(
-	\freq, 182,
-	\modfreq, 0.185,
-	\shapebufA, ~shaperBuffers[\truesquare], 
-	\shapebufB, ~shaperBuffers[\altsignflipping_impulse_train]
-).play;
-
-Ndef(\b).copy(\c).set(
-	\freq, 582,
-	\modfreq, 5.085,
-	\shapebufA, ~shaperBuffers[\jimmysmith], 
-	\shapebufB, ~shaperBuffers[\truetriangle]
-).play;
-)
-
-*/
 (
 	MKSynthLib.poster("Loading waveshaper algos");
 
@@ -64,23 +27,7 @@ Ndef(\b).copy(\c).set(
 	};
 
 	// A function for embedding in a synthdef using SynthDef.wrap
-	/*
-
-	SynthDef.new(\lol, {|out=0, amp=0.25, dur=1|
-		var sig = SinOsc.ar(141);
-		sig = SynthDef.wrap(~waveshapeXWrap,  prependArgs: [sig]);
-
-		Out.ar(out, Env.perc.kr(gate:1, timeScale: dur) * sig * amp)
-	}).add;
-
-	Synth(\lol, [
-		\waveshapeCrossfade, 0.5, 
-		\waveshapeA, 0,
-		\waveshapeB, 3,
-	]);
-
-	*/
-
+	
 	// Pass through
 	MKSynthLib.addWaveshapeWrapper(\n, { arg sig; sig });
 
