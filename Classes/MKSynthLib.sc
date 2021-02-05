@@ -29,11 +29,22 @@ MKSynthLib {
 						var sig = SynthDef.wrap(synthfunc);
 
 						sig = sig * MKSynthLib.getEnvelopeWrapped(
-							envelopeName: envType, dur: dur, envDone: envDone, prefix: "vca"
+							envelopeName: envType, 
+							dur: dur, 
+							envDone: envDone, 
+							prefix: "vca"
 						);
 
 						sig = MKSynthLib.embedWithWaveshaper(shapeFuncName, sig);
-						sig = MKFilterLib.new(filterName: filterType, sig: sig, filterEnvType: envType, envDone: 0);
+
+						sig = MKFilterLib.new(
+							filterName: filterType, 
+							sig: sig, 
+							filterEnvType: envType, 
+							dur: dur,
+							envDone: 0
+						);
+
 						sig = MKSynthLib.embedWithPanner(numChannelsIn, sig);
 
 						Out.ar(out, sig * amp);
@@ -151,6 +162,16 @@ MKSynthLib {
 	*addGrainShapeBuffer{|name, buffer|
 		this.poster("Adding grainshape buffer %".format(name));
 		grainShapeBuffers.put(name, buffer);
+	}
+
+	*embedWithGrainShapes{
+		^SynthDef.wrap({|grainshape=0.5|
+			var shapebuffers = SynthDef.wrap({ MKSynthLib.grainShapeBuffers.asArray });
+			Select.kr(
+				grainshape * shapebuffers.size, 
+				shapebuffers
+			); 
+		})
 	}
 
 	// Synth plumming
@@ -361,7 +382,7 @@ MKFilterLib{
 		})
 	}
 
-	*embedWithFilter{|filterName, sig, filterEnvType, dur, envDone, suffix=""|
+	*embedWithFilter{|filterName, sig, filterEnvType, dur=1, envDone=2, suffix=""|
 		^SynthDef.wrap(this.getFilterWrapper(filterName, filterEnvType, suffix),  prependArgs: [sig, dur, envDone])
 	} 
 
