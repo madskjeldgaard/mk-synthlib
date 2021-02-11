@@ -1,7 +1,8 @@
 # Plundered from all around
+This is my SuperCollider synthdef library and factory. It produces tons of variations of synths that I use. 
 
-
-This is my SuperCollider synthdef library
+### Usage
+This library is meant for myself and I am not offering support in using it, but feel free to try it anyway and steal bits of it for your own projects.
 
 ### Settings
 
