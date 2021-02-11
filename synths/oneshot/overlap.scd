@@ -11,10 +11,11 @@
 
 		var sig = Array.fill(numOverlaps, {|overlapNum|
 			var offset = MKNC.kr("playheadOffset", overlapNum/numOverlaps, suffix: overlapNum);
+			var rateOffset = MKNC.kr("rateBias", 0, suffix:overlapNum);
 
 			PlayBuf.ar(numChannels, 
 				buffer, 
-				dir * rate * BufRateScale.kr(buffer) * wow,
+				dir * (rate + rateOffset) * BufRateScale.kr(buffer) * wow,
 				startPos: offset * BufFrames.kr(buffer),
 				loop: loop
 			)
@@ -23,7 +24,7 @@
 		sig = if(numChannels == 1, {
 			Splay.ar(sig).sum
 		}, { 
-			Splay.ar(sig)
+			Splay.ar(sig, spread: 0.1)
 		});
 
 		sig
