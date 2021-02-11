@@ -8,7 +8,7 @@
 		dir * rate * BufRateScale.kr(buffer), 
 		startPos: startPosition * BufFrames.kr(buffer),
 		loop: loop
-	)
-}, numChannelsIn: numChannels)
-}
+	)}, numChannelsIn: numChannels)
+};
 )
+
