@@ -2,15 +2,15 @@
 var filters = (
 	dfm1: {|suffix="", filterEnvType=\perc|
 
-		{|sig, dur, envDone|
+		{|sig, dur, envDone=0|
 			// Filter envelope stuff
 			var filterLag = MKNC.kr("filterLag", 0.1);
 			var filterEnv = MKSynthLib.getEnvelopeWrapped(
 							envelopeName: filterEnvType, dur: dur, envDone: envDone, prefix: "filter"
 						).lag(filterLag * dur );
 			var filterEnvPeak = MKNC.kr("filterEnvPeak", 1, suffix: suffix);
-			var cutoffParam = MKNC.kr("cutoff", 1500, suffix: suffix);
-			var filterEnvParam = MKNC.kr("filterEnvAmount", 1.0, suffix:suffix);
+			var cutoffParam = MKNC.kr("cutoff", 20000, suffix: suffix);
+			var filterEnvParam = MKNC.kr("filterEnvAmount", 0.0, suffix:suffix);
 			var cutoff = SelectX.kr(filterEnvParam, [
 				cutoffParam, filterEnv.linlin(0.0,1.0,20.0, clip(cutoffParam * filterEnvPeak, 20.0,20000.0))
 			]);
@@ -18,16 +18,16 @@ var filters = (
 			DFM1.ar(
 				sig, 
 				cutoff,
-				MKNC.ar("resonance", 0.5, suffix:suffix), 
+				MKNC.ar("resonance", 0.0, suffix:suffix), 
 				MKNC.ar("filterGain", 1.0, suffix: suffix), 
 				MKNC.ar("filterType", 0.0, suffix: suffix), 
-				MKNC.ir("filterNoise", 0.0003, suffix: suffix)
+				MKNC.ir("filterNoise", 0.0, suffix: suffix)
 			)
 
 		}
 	},
 	svf: {|suffix="", filterEnvType=\perc|
-		{|sig, dur, envDone|
+		{|sig, dur, envDone=0|
 			// Filter envelope stuff
 			var filterLag = MKNC.kr("filterLag", 0.1);
 			var filterEnv = MKSynthLib.getEnvelopeWrapped(
@@ -54,7 +54,7 @@ var filters = (
 	},
 	// Picked this up here: https://scsynth.org/t/morphing-filters/1790/6
 	morphing: {|suffix="", filterEnvType=\perc|
-		{|sig, dur, envDone|
+		{|sig, dur, envDone=0|
 			// Filter envelope stuff
 			var filterLag = MKNC.kr("filterLag", 0.1);
 			var filterEnv = MKSynthLib.getEnvelopeWrapped(
