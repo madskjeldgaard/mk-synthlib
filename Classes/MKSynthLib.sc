@@ -241,6 +241,8 @@ MKSynthLib {
 }
 
 // Convenience function for calculating auto panning values
+// When autopan is 0, it works as a normal pan using the pan argument
+// When autopan is on, the pan argument becomes a bias for the autopanner
 MKAutoPan{
 	*ar{|pan=1, panFreq=1, autopan=0, panShape=1.0|
 		// Width is divided by two to make it go from saw to tri from 0 to 1 (instead of back to saw at the end)
