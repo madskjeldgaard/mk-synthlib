@@ -34,7 +34,7 @@ var envs = (
 				release=MKNC.kr("release", 0.9, suffix: suffix, prefix: prefix), 
 				envcurve=MKNC.kr("envcurve", -5.0, suffix: suffix, prefix: prefix), 
 				gate=MKNC.kr("gate", 1, suffix: suffix, prefix: prefix),
-				legato = MKNC.kr("legato");
+				legato = MKNC.kr("legato", 1);
 
 				EnvGen.kr(
 				Env.perc(attack, release,  level: 1.0,  curve: envcurve),
