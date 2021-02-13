@@ -14,6 +14,10 @@ MKSynthLib {
 		^this.init( numChannelsOut, verbose );
 	}
 
+	*sndPath{
+		^path +/+ "snd"
+	}
+
 	*add{|basename, synthfunc, numChannelsIn=1|
 		var theseSynths = [];
 		var kind = \oneshot;
@@ -456,5 +460,7 @@ MKGenPat{
 		};
 		if(wrapInPdef, {"\t)\n).play".postln}, {").play".postln});
 	}
+
+	
 
 }
