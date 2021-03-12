@@ -31,6 +31,7 @@ a = Synth(\obj, [\out, 0, \eocOut, ~b, \gate, 1, \atk, 1, \rel, 0, \pan, 1]);
 (
 Event.addEventType(\three, { |server|
 	~stretch = ~stretch ?? 1.0;
+
 	// Last
 	Synth(~instrument3 ? ~instrument1, [
 		\dur, ~dur3 * ~stretch, 
@@ -69,6 +70,8 @@ Event.addEventType(\three, { |server|
 		\pan, ~pan1 ? 1.0,
 		\amp, ~amp ? 0.5
 	]);
+
+	currentEnvironment.asArgArray.postln;
 });
 )
 
