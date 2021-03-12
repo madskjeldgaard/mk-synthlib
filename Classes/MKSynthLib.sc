@@ -14,11 +14,43 @@ MKSynthLib {
 		^this.init( numChannelsOut, verbose );
 	}
 
+	*init{|numChannels, verbose|
+		var synthlibLoader;
+		path = Main.packages.asDict.at('mk-synthlib');
+		
+		synthlibLoader = load(path +/+ "main.scd");
+
+		numChansOut = numChannels;
+
+		verbosity = verbose;
+
+		synths = IdentityDictionary[];
+		envelopes = IdentityDictionary[];
+		shapeBuffers = IdentityDictionary[];
+		grainShapeBuffers = IdentityDictionary[];
+		waveshapeWrappers = IdentityDictionary[];
+		
+		Server.local.waitForBoot{
+			fork{
+				MKFilterLib.loadFilters();
+				Server.local.sync;
+				this.loadMessage;
+				synthlibLoader.value(numChannelsOut: numChannels);
+				Server.local.sync;
+				initialized = true;
+			}
+		}
+	}
+
+	*get{|basename|
+
+	}
+
 	*sndPath{
 		^path +/+ "snd"
 	}
 
-	*add{|basename, synthfunc, numChannelsIn=1|
+	*add{|basename, synthfunc, numChannelsIn=1, withWaveshaper=true, withFilter=true, withPanner=true|
 		var theseSynths = [];
 		var kind = \oneshot;
 		var func;
@@ -26,7 +58,8 @@ MKSynthLib {
 		this.getEnvelopeNamesForKind.do{|envType|
 			this.shapeWrapperKinds.do{|shapeFuncName|
 				MKFilterLib.filterTypes.do{|filterType|
-					var name = "%_%_%_%".format(basename, envType, filterType, shapeFuncName).asSymbol;
+					var name = "%".format(basename);
+					name = name ++ "_%".format(envType);
 
 					// Wrap the input function
 					func = { | out=0, amp=0.25, dur=1, envDone=2|
@@ -39,24 +72,44 @@ MKSynthLib {
 							prefix: "vca"
 						);
 
-						sig = MKSynthLib.embedWithWaveshaper(shapeFuncName, sig);
+						if(withWaveshaper, {
+							name = name ++ "_%".format(shapeFuncName);
+							sig = MKSynthLib.embedWithWaveshaper(shapeFuncName, sig);
+						});
 
-						sig = MKFilterLib.new(
-							filterName: filterType, 
-							sig: sig, 
-							filterEnvType: envType, 
-							dur: dur,
-							envDone: 0
-						);
+						if(withFilter, { 
+							name = name ++ "_%".format(filterType);
 
-						sig = MKSynthLib.embedWithPanner(numChannelsIn, sig);
+							sig = MKFilterLib.new(
+								filterName: filterType, 
+								sig: sig, 
+								filterEnvType: envType, 
+								dur: dur,
+								envDone: 0
+							);
+						});
+
+						if(withPanner, {
+							sig = MKSynthLib.embedWithPanner(numChannelsIn, sig);
+						});
 
 						Out.ar(out, sig * amp);
 					};
 
-					SynthDef.new(name, func).store;
+					// Extremely TODO
+					synths[basename.asSymbol] = if(
+						synths[basename.asSymbol].isNil, { 
+						// 	synths[basename.asSymbol] = (
+
+						[name.asSymbol]
+						// 	)
+					}, { 
+						synths[basename.asSymbol].add(name.asSymbol)
+					});
+
+					SynthDef.new(name.asSymbol, func).store;
 					theseSynths = theseSynths.add(name);
-					this.addSynthName(name, kind);
+					// this.addSynthName(name, kind);
 
 				}
 			}
@@ -200,33 +253,7 @@ MKSynthLib {
 	}
 
 
-	*init{|numChannels, verbose|
-		var synthlibLoader;
-		path = Main.packages.asDict.at('mk-synthlib');
-		
-		synthlibLoader = load(path +/+ "main.scd");
-
-		numChansOut = numChannels;
-
-		verbosity = verbose;
-
-		synths = IdentityDictionary[];
-		envelopes = IdentityDictionary[];
-		shapeBuffers = IdentityDictionary[];
-		grainShapeBuffers = IdentityDictionary[];
-		waveshapeWrappers = IdentityDictionary[];
-		
-		Server.local.waitForBoot{
-			fork{
-				MKFilterLib.loadFilters();
-				Server.local.sync;
-				this.loadMessage;
-				synthlibLoader.value(numChannelsOut: numChannels);
-				Server.local.sync;
-				initialized = true;
-			}
-		}
-	}
+	
 
 	*loadSynthLib{
 
