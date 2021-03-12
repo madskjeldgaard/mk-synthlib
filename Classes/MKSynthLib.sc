@@ -59,12 +59,21 @@ MKSynthLib {
 			this.shapeWrapperKinds.do{|shapeFuncName|
 				MKFilterLib.filterTypes.do{|filterType|
 					var name = "%".format(basename);
+
+					// Add envelope type to basename
 					name = name ++ "_%".format(envType);
 
+					// Add filter type to basename
+					name = name ++ "_%".format(filterType);
+
+					// Add waveshaper type to basename
+					name = name ++ "_%".format(shapeFuncName);
+					
 					// Wrap the input function
 					func = { | out=0, amp=0.25, dur=1, envDone=2|
 						var sig = SynthDef.wrap(synthfunc);
 
+						// Apply VCA envelope
 						sig = sig * MKSynthLib.getEnvelopeWrapped(
 							envelopeName: envType, 
 							dur: dur, 
@@ -72,13 +81,7 @@ MKSynthLib {
 							prefix: "vca"
 						);
 
-						if(withWaveshaper, {
-							name = name ++ "_%".format(shapeFuncName);
 							sig = MKSynthLib.embedWithWaveshaper(shapeFuncName, sig);
-						});
-
-						if(withFilter, { 
-							name = name ++ "_%".format(filterType);
 
 							sig = MKFilterLib.new(
 								filterName: filterType, 
@@ -87,11 +90,8 @@ MKSynthLib {
 								dur: dur,
 								envDone: 0
 							);
-						});
 
-						if(withPanner, {
 							sig = MKSynthLib.embedWithPanner(numChannelsIn, sig);
-						});
 
 						Out.ar(out, sig * amp);
 					};
@@ -99,10 +99,7 @@ MKSynthLib {
 					// Extremely TODO
 					synths[basename.asSymbol] = if(
 						synths[basename.asSymbol].isNil, { 
-						// 	synths[basename.asSymbol] = (
-
 						[name.asSymbol]
-						// 	)
 					}, { 
 						synths[basename.asSymbol].add(name.asSymbol)
 					});

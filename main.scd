@@ -22,8 +22,6 @@
 
 			s.sync;
 			MKSynthLib.poster("DONE LOADING MKSynthLib");
-			MKSynthLib.poster("Want to try something?");
-			MKGenPat.new(MKSynthLib.synths[\oneshot].choose);
 
 			// See and test all loaded SynthDefs:
 			// SynthDescLib.global.browse;
