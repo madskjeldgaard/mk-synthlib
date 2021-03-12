@@ -1,4 +1,8 @@
+- Optional waveshaping, filtering etc in *add function
+- getByBaseName
+
+- bpf filter
+- resonating filter
 - rates in synthdef wrappers
 - Better loading of files (inside of class)
 - advanced (with control over each operator) vs simple versions (with overall env control) of pm synth 
-- Server side granular with waveshaping

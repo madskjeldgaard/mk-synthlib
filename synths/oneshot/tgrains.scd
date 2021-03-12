@@ -4,8 +4,8 @@
 	MKSynthLib.add("tgrains3x%".format(numChans), {|density=10, grainsize=0.1, grainpos=0, grainrate=0.5, buffer| 
 		var trigger = Dust2.kr(density);
 		var shape = MKSynthLib.embedWithGrainShapes(); 
+		var graindur = MKNC.kr("graindur", 0.1);
 
-		// BufGrain.ar(trigger, 1, buffer)
 		TGrains3.ar(numChans, 
 			trigger: trigger, 
 			bufnum: buffer, 

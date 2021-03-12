@@ -1,8 +1,8 @@
 (
-	[1,2].do{|numChans|
+	[1].do{|numChans|
 	MKSynthLib.add("warp%".format(numChans), {|buffer| 
 		var rate = MKNC.kr("grainrate", 0.5);
-		var pointer = LFSaw.ar(rate).range(0.0,1.0).poll(label: \pointer);
+		var pointer = LFSaw.ar(rate).range(0.0,1.0);
 
 		var shape = MKSynthLib.embedWithGrainShapes();
 
@@ -13,35 +13,34 @@
 			windowSize: MKNC.kr("grainsize", 0.1), 
 			envbufnum: shape, 
 			overlaps: MKNC.kr("grainoverlap", 2), 
-			windowRandRatio: MKNC.kr("windowrand", 0.0), 
+			windowRandRatio: MKNC.kr("windowrand", 0.9), 
 			interp: 4
-		).poll;
+		);
 
 		LeakDC.ar(sig);
 	}, numChannelsIn: numChans);
 
-	}
-)
-(
-	[1,2].do{|numChans|
-	MKSynthLib.add("warpoverlap%".format(numChans), {|buffer| 
-		var rate = MKNC.kr("grainrate", 0.5);
+	};
 
-		var sig = WarpOverlap.ar(numChans: numChans, 
-			buffer: buffer, 
-			stretch: rate,
-			starttime: MKNC.kr("starttime", 0.5),
-			harm: MKNC.kr("grainfreqScale", 1), 
-			windowsize: MKNC.kr("overlapWindows", 6),
-			step: MKNC.kr("warpstep", 1),
-			warpwindowoverlaps: MKNC.kr("grainoverlap", 8), 
-			overlaps: 8, 
-			warpwindowsize: MKNC.kr("grainsize", 0.1), 
-			warpwindowran: MKNC.kr("windowrand", 0.5) 
-		).poll;
+	// [1].do{|numChans|
+	// MKSynthLib.add("warpoverlap%".format(numChans), {|buffer| 
+	// 	var rate = MKNC.kr("grainrate", 0.5);
 
-		LeakDC.ar(sig);
-	}, numChannelsIn: numChans);
+	// 	var sig = WarpOverlap.ar(numChans: numChans, 
+	// 		buffer: buffer, 
+	// 		stretch: rate,
+	// 		starttime: MKNC.kr("starttime", 0.5),
+	// 		harm: MKNC.kr("grainfreqScale", 1), 
+	// 		windowsize: MKNC.kr("overlapWindows", 6),
+	// 		step: MKNC.kr("warpstep", 1),
+	// 		warpwindowoverlaps: MKNC.kr("grainoverlap", 8), 
+	// 		overlaps: 8, 
+	// 		warpwindowsize: MKNC.kr("grainsize", 0.1), 
+	// 		warpwindowran: MKNC.kr("windowrand", 0.5) 
+	// 	).poll;
 
-	}
+	// 	LeakDC.ar(sig);
+	// }, numChannelsIn: numChans);
+
+	// }
 )
