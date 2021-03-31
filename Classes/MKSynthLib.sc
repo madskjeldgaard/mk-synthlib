@@ -81,17 +81,17 @@ MKSynthLib {
 							prefix: "vca"
 						);
 
-							sig = MKSynthLib.embedWithWaveshaper(shapeFuncName, sig);
+						sig = MKSynthLib.embedWithWaveshaper(shapeFuncName, sig);
 
-							sig = MKFilterLib.new(
-								filterName: filterType, 
-								sig: sig, 
-								filterEnvType: envType, 
-								dur: dur,
-								envDone: 0
-							);
+						sig = MKFilterLib.new(
+							filterName: filterType, 
+							sig: sig, 
+							filterEnvType: envType, 
+							dur: dur,
+							envDone: 0
+						);
 
-							sig = MKSynthLib.embedWithPanner(numChannelsIn, sig);
+						sig = MKSynthLib.embedWithPanner(numChannelsIn, sig);
 
 						Out.ar(out, sig * amp);
 					};

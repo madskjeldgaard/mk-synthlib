@@ -1,4 +1,9 @@
 (
+var eocFunc = {|gate, dur, eoc|
+	// Send trigger when duration is done
+	Out.kr(eoc, TDelay.kr(gate.poll, dur.poll).poll);
+};
+
 var envs = (
 		// Same as Env.adsr but with release node set to nil to make it triggered
 		tadsr:{ |prefix, suffix|
@@ -12,7 +17,10 @@ var envs = (
 				bias = MKNC.kr("bias", 0.0, suffix: suffix, prefix: prefix), 
 				gate=MKNC.kr("gate", 1, suffix:suffix, prefix:prefix),
 				legato = MKNC.kr("legato", 1);
+				dur = legato * dur;
 
+				// Send trigger when done
+				SynthDef.wrap(eocFunc, prependArgs: [gate, dur, MKNC.kr("eocbus", nil)]);
 
 				EnvGen.kr(
 				Env.new(			
@@ -21,7 +29,7 @@ var envs = (
 						curve
 				),
 					gate,  
-					timeScale:legato * dur,
+					timeScale:dur,
 					levelBias: 0,
 					levelScale: 1.0,
 					doneAction: envDone
@@ -36,10 +44,13 @@ var envs = (
 				gate=MKNC.kr("gate", 1, suffix: suffix, prefix: prefix),
 				legato = MKNC.kr("legato", 1);
 
+				dur = legato * dur;
+				SynthDef.wrap(eocFunc, prependArgs: [gate, dur, MKNC.kr("eoc", nil)]);
+
 				EnvGen.kr(
 				Env.perc(attack, release,  level: 1.0,  curve: envcurve),
 					gate,  
-					timeScale:legato * dur,
+					timeScale:dur ,
 					levelBias: 0,
 					levelScale: 1.0,
 					doneAction: envDone
