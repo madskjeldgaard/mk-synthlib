@@ -42,8 +42,13 @@ MKSynthLib {
 		}
 	}
 
-	*get{|basename|
+	// @TODO
+	*get{|basename, envelope=\perc, filter=\dfm1|
+		^synths[basename].first
+	}
 
+	*get1{|basename|
+		^synths[basename].first
 	}
 
 	*sndPath{
@@ -56,7 +61,6 @@ MKSynthLib {
 		var func;
 
 		this.getEnvelopeNamesForKind.do{|envType|
-			this.shapeWrapperKinds.do{|shapeFuncName|
 				MKFilterLib.filterTypes.do{|filterType|
 					var name = "%".format(basename);
 
@@ -67,7 +71,7 @@ MKSynthLib {
 					name = name ++ "_%".format(filterType);
 
 					// Add waveshaper type to basename
-					name = name ++ "_%".format(shapeFuncName);
+					// name = name ++ "_%".format(shapeFuncName);
 					
 					// Wrap the input function
 					func = { | out=0, amp=0.25, dur=1, envDone=2|
@@ -81,7 +85,7 @@ MKSynthLib {
 							prefix: "vca"
 						);
 
-						sig = MKSynthLib.embedWithWaveshaper(shapeFuncName, sig);
+						// sig = MKSynthLib.embedWithWaveshaper(shapeFuncName, sig);
 
 						sig = MKFilterLib.new(
 							filterName: filterType, 
@@ -108,7 +112,6 @@ MKSynthLib {
 					theseSynths = theseSynths.add(name);
 					// this.addSynthName(name, kind);
 
-				}
 			}
 		};
 		

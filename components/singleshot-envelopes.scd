@@ -1,7 +1,7 @@
 (
 var eocFunc = {|gate, dur, eoc|
 	// Send trigger when duration is done
-	Out.kr(eoc, TDelay.kr(gate.poll, dur.poll).poll);
+	Out.kr(eoc, TDelay.kr(gate, dur));
 };
 
 var envs = (

@@ -4,7 +4,7 @@
 ~d = Bus.control(s, 1).set(0);
 )
 (
-SynthDef(\obj, {|freq=100, out=0, dur=1, pan=0, eocOut=1, amp=0.5, gate=0, atk=0.9, rel=0.1| 
+SynthDef(\testobj, {|freq=100, out=0, dur=1, pan=0, eocOut=1, amp=0.5, gate=0, atk=0.9, rel=0.1| 
 	// Source signal
 	var sig = SinOsc.ar(freq);
 
@@ -22,9 +22,9 @@ SynthDef(\obj, {|freq=100, out=0, dur=1, pan=0, eocOut=1, amp=0.5, gate=0, atk=0
 
 // Spawn synths. a starts, then when it's done it triggers b, then when that's done it SHOULD trigger c
 (
-c = Synth(\obj, [\out, 0, \gate, ~c.asMap, \eocOut, ~d, \freq, 931, \atk, 0, \rel, 1, \pan, 0]);
-b = Synth(\obj, [\out, 0, \gate, ~b.asMap, \eocOut, ~c, \freq, 200, \atk, 0, \rel, 1, \pan, -1]);
-a = Synth(\obj, [\out, 0, \eocOut, ~b, \gate, 1, \atk, 1, \rel, 0, \pan, 1]);
+c = Synth(\testobj, [\out, 0, \gate, ~c.asMap, \eocOut, ~d, \freq, 931, \atk, 0, \rel, 1, \pan, 0]);
+b = Synth(\testobj, [\out, 0, \gate, ~b.asMap, \eocOut, ~c, \freq, 200, \atk, 0, \rel, 1, \pan, -1]);
+a = Synth(\testobj, [\out, 0, \eocOut, ~b, \gate, 1, \atk, 1, \rel, 0, \pan, 1]);
 )
 
 // Now as an event type
