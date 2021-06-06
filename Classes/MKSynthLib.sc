@@ -6,16 +6,20 @@ MKSynthLib {
 		<grainShapeBuffers,
 		<waveshapeWrappers, 
 		<envelopes,
-		<emojis,
 		<path,
-		<initialized;
+		<initialized,
+		forceAdd,
+		libname;
 
-	*new {|numChannelsOut=2, verbose=true|
-		^this.init( numChannelsOut, verbose );
+	*new {|numChannelsOut=2, verbose=true, force|
+		forceAdd = force;
+		^this.init( numChannelsOut, verbose);
 	}
 
 	*init{|numChannels, verbose|
 		var synthlibLoader;
+		this.checkLib();
+
 		path = Main.packages.asDict.at('mk-synthlib');
 		
 		synthlibLoader = load(path +/+ "main.scd");
@@ -33,13 +37,32 @@ MKSynthLib {
 		Server.local.waitForBoot{
 			fork{
 				MKFilterLib.loadFilters();
-				Server.local.sync;
 				this.loadMessage;
 				synthlibLoader.value(numChannelsOut: numChannels);
-				Server.local.sync;
 				initialized = true;
 			}
 		}
+	}
+
+	*checkLib{
+		try {  
+			SynthDescLib.getLib(libname) 
+		} { 
+			// this.poster(
+			// 	"Could not find % in SynthDescLib, creating it now...".format(libname), 
+			// 	error: false
+			// );
+			SynthDescLib.new(name: libname); 
+		}
+
+	}
+
+	*browse{
+		if(SynthDescLib.getLib(libname).isNil, { 
+			this.poster("Could not find % SynthDescLib".format(libname), error: true);
+		}, {
+			SynthDescLib.getLib(libname).browse
+		})
 	}
 
 	// @TODO
@@ -55,6 +78,20 @@ MKSynthLib {
 		^path +/+ "snd"
 	}
 
+	*getName{|basename, envType, filterType|
+		var name = "%".format(basename);
+
+		// Add envelope type to basename
+		if(envType.isNil.not, {  name = name ++ "_%".format(envType) });
+
+		// Add filter type to basename
+		if(envType.isNil.not, {name = name ++ "_%".format(filterType); });
+
+		name = name ++ numChansOut.asString;
+
+		^name
+	}
+
 	*add{|basename, synthfunc, numChannelsIn=1, withWaveshaper=true, withFilter=true, withPanner=true|
 		var theseSynths = [];
 		var kind = \oneshot;
@@ -62,13 +99,9 @@ MKSynthLib {
 
 		this.getEnvelopeNamesForKind.do{|envType|
 				MKFilterLib.filterTypes.do{|filterType|
-					var name = "%".format(basename);
-
-					// Add envelope type to basename
-					name = name ++ "_%".format(envType);
-
-					// Add filter type to basename
-					name = name ++ "_%".format(filterType);
+					var name = this.getName(basename, envType, filterType);
+					
+					if(forceAdd or: { SynthDescLib.getLib(libname).at(name.asSymbol).isNil }, {
 
 					// Add waveshaper type to basename
 					// name = name ++ "_%".format(shapeFuncName);
@@ -101,26 +134,31 @@ MKSynthLib {
 					};
 
 					// Extremely TODO
-					synths[basename.asSymbol] = if(
-						synths[basename.asSymbol].isNil, { 
-						[name.asSymbol]
-					}, { 
-						synths[basename.asSymbol].add(name.asSymbol)
-					});
+					// 
+					// synths[basename.asSymbol] = if(
+					// 	synths[basename.asSymbol].isNil, { 
+					// 	[name.asSymbol]
+					// }, { 
+					// 	synths[basename.asSymbol].add(name.asSymbol)
+					// });
 
-					SynthDef.new(name.asSymbol, func).store;
-					theseSynths = theseSynths.add(name);
-					// this.addSynthName(name, kind);
+					SynthDef.new(name.asSymbol, func).store(libname: libname);
+
+				this.poster("Done generating synthdefs for %".format(basename));
+				}, { this.poster("Skipping: %".format(basename)); });
+
+
+				this.addSynthName(name, basename);
+				theseSynths = theseSynths.add(name);
 
 			}
-		};
+	};
 		
-		this.poster("Done generating synthdefs for %".format(basename));
 		// MKGenPat.new(theseSynths.choose);
 	}
 
-	*initClass{
-		emojis = ["🤠", "🪱", "🦑", "🥀", "🌻", "🍁", "🍇",  "🦞", "🍍", "🧀" ];
+	*initClass{ 
+		libname = 'mksynthlib';
 	}
 
 	// Synthdef names
@@ -241,7 +279,7 @@ MKSynthLib {
 	}
 
 	*poster{|what, error=false|
-		var prefix = emojis.choose;
+		var prefix = "MKSynthLib>>";
 		verbosity.if({
 			var string = "% %".format(prefix, what);
 			if(error, {
@@ -303,71 +341,7 @@ MKPanLib {
 	// Deduce a panning function from number of channels in and number of channels out
 	// Return a function to be used with SynthDef.wrap
 	*getPanFunc{|numChannelsIn=1, numChannelsOut=2|
-		var panFunc = case
-		// Mono output
-		{ numChannelsOut == 1 } { 
-			if(numChannelsIn > 1, { 
-				{|sig|sig.sum}		
-			}, {
-				{|sig|sig}
-			}) 
-		}
-		// Stereo output
-		{ numChannelsOut == 2 } { 
-			case 
-			// Mono input
-			{ numChannelsIn == 1 } { 
-				{|sig, pan=0, panFreq=1, autopan=0, panShape=1| 
-					var panner = MKAutoPan.ar(pan:pan, panFreq:panFreq, autopan:autopan, panShape:panShape);
-					Pan2.ar(sig, panner)
-				} 
-			}
-			// Stereo input
-			{ numChannelsIn == 2 } { 
-				{|sig, pan=0, panFreq=1, autopan=0, panShape=1| 
-					var panner = MKAutoPan.ar(pan:pan, panFreq:panFreq, autopan:autopan, panShape:panShape);
-					Balance2.ar(sig[0], sig[1], panner) 
-				}		
-			}
-		}
-		// Multichannel output
-		{numChannelsOut > 2} { 
-			case
-			// Mono input
-			{ numChannelsIn == 1 } { 
-				{|sig, pan=0, width=2, orientation=0.5, panFreq=1, autopan=0, panShape=1|
-					var panner = MKAutoPan.ar(pan:pan, panFreq:panFreq, autopan:autopan, panShape:panShape);
-
-					PanAz.ar(
-						numChannelsOut, 
-						sig, 
-						panner, 
-						width: width, 
-						orientation: orientation
-					) 
-				}
-			}
-			// Stereo input
-			{ numChannelsIn > 1 } { 
-				{|sig, pan=0, spread=1, width=2.0, orientation=0.5, levelComp=true, panFreq=1, autopan=0, panShape=1|
-					var panner = MKAutoPan.ar(pan:pan, panFreq:panFreq, autopan:autopan, panShape:panShape);
-
-					SplayAz.ar(
-						numChannelsOut, 
-						sig,  
-						spread: spread,  
-						level: 1,  
-						width: width,  
-						center: panner,  
-						orientation: orientation,  
-						levelComp: levelComp
-					)
-				}
-			};
-
-		};
-
-		^panFunc
+				^{|sig| PanFunc.ar(sig, numChannelsIn, numChannelsOut)}
 	}
 }
 

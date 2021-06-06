@@ -1,9 +1,9 @@
 (
   name: "mk-synthlib",
   summary: "Synth library made and used by Mads Kjeldgaard",
-  version: "0.0.1",
+  version: "0.0.2",
   schelp: "MKSynthLib",
-  dependencies: [],
+  dependencies: [AutoPan],
   url: "https://github.com/madskjeldgaard/mk-synthlib/",
   license: "GPL",
   copyright: "Mads Kjeldgaard, 2021"

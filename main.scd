@@ -9,7 +9,7 @@
 				path.load
 			};
 
-			s.sync;
+			// s.sync;
 			
 			// Synths that need to be manually killed
 			PathName(MKSynthLib.path +/+ "synths").folders.do{|directory|
@@ -20,7 +20,7 @@
 				};
 			};
 
-			s.sync;
+			// s.sync;
 			MKSynthLib.poster("DONE LOADING MKSynthLib");
 
 			// See and test all loaded SynthDefs:
