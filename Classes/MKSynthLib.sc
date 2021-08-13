@@ -8,11 +8,9 @@ MKSynthLib {
 		<envelopes,
 		<path,
 		<initialized,
-		forceAdd,
 		libname;
 
-	*new {|numChannelsOut=2, verbose=true, force|
-		forceAdd = force;
+	*new {|numChannelsOut=2, verbose=true|
 		^this.init( numChannelsOut, verbose);
 	}
 
@@ -97,62 +95,59 @@ MKSynthLib {
 		var kind = \oneshot;
 		var func;
 
-		this.getEnvelopeNamesForKind.do{|envType|
-				MKFilterLib.filterTypes.do{|filterType|
-					var name = this.getName(basename, envType, filterType);
-					
-					if(forceAdd or: { SynthDescLib.getLib(libname).at(name.asSymbol).isNil }, {
+        this.getEnvelopeNamesForKind.do{|envType|
+          MKFilterLib.filterTypes.do{|filterType|
+            var name = this.getName(basename, envType, filterType);
 
-					// Add waveshaper type to basename
-					// name = name ++ "_%".format(shapeFuncName);
-					
-					// Wrap the input function
-					func = { | out=0, amp=0.25, dur=1, envDone=2|
-						var sig = SynthDef.wrap(synthfunc);
+            // Add waveshaper type to basename
+            // name = name ++ "_%".format(shapeFuncName);
 
-						// Apply VCA envelope
-						sig = sig * MKSynthLib.getEnvelopeWrapped(
-							envelopeName: envType, 
-							dur: dur, 
-							envDone: envDone, 
-							prefix: "vca"
-						);
+            // Wrap the input function
+            func = { | out=0, amp=0.25, dur=1, envDone=2|
+              var sig = SynthDef.wrap(synthfunc);
 
-						// sig = MKSynthLib.embedWithWaveshaper(shapeFuncName, sig);
+              // Apply VCA envelope
+              sig = sig * MKSynthLib.getEnvelopeWrapped(
+                envelopeName: envType, 
+                dur: dur, 
+                envDone: envDone, 
+                prefix: "vca"
+              );
 
-						sig = MKFilterLib.new(
-							filterName: filterType, 
-							sig: sig, 
-							filterEnvType: envType, 
-							dur: dur,
-							envDone: 0
-						);
+              // sig = MKSynthLib.embedWithWaveshaper(shapeFuncName, sig);
 
-						sig = MKSynthLib.embedWithPanner(numChannelsIn, sig);
+              sig = MKFilterLib.new(
+                filterName: filterType, 
+                sig: sig, 
+                filterEnvType: envType, 
+                dur: dur,
+                envDone: 0
+              );
 
-						Out.ar(out, sig * amp);
-					};
+              sig = MKSynthLib.embedWithPanner(numChannelsIn, sig);
 
-					// Extremely TODO
-					// 
-					// synths[basename.asSymbol] = if(
-					// 	synths[basename.asSymbol].isNil, { 
-					// 	[name.asSymbol]
-					// }, { 
-					// 	synths[basename.asSymbol].add(name.asSymbol)
-					// });
+              Out.ar(out, sig * amp);
+            };
 
-					SynthDef.new(name.asSymbol, func).store(libname: libname);
+            // Extremely TODO
+            // 
+            // synths[basename.asSymbol] = if(
+            // 	synths[basename.asSymbol].isNil, { 
+            // 	[name.asSymbol]
+            // }, { 
+            // 	synths[basename.asSymbol].add(name.asSymbol)
+            // });
 
-				this.poster("Done generating synthdefs for %".format(basename));
-				}, { this.poster("Skipping: %".format(basename)); });
+            SynthDef.new(name.asSymbol, func).store(libname: libname);
+
+            this.poster("Done generating synthdefs for %".format(basename));
+          };
 
 
-				this.addSynthName(name, basename);
-				theseSynths = theseSynths.add(name);
+          this.addSynthName(name, basename);
+          theseSynths = theseSynths.add(name);
 
-			}
-	};
+        }
 		
 		// MKGenPat.new(theseSynths.choose);
 	}
